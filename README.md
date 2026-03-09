@@ -76,5 +76,5 @@ Dodatkowo projekt ma zawierać dodatkowe, pokazujące zastosowanie algorytmów i
    
 ### 4. Testowalność
 #### 4.1 Algorytmy grafiki komputerowej powinny być możliwe do przetestowania.
-## 4.2 Program powinien umożliwiać sprawdzenie poprawności działania funkcji rysowania i filtrów.
+#### 4.2 Program powinien umożliwiać sprawdzenie poprawności działania funkcji rysowania i filtrów.
 
