@@ -2,6 +2,7 @@
 Projekt na zajęcia PZPP:
 Temat wstępny: Pixel Art & Animation Editor 
 Jezyk i bibliioteki: C++, SFML
+
 Cel projektu: Przygotować program do tworzenia grafiki pikselowej i prostych animacji klatkowych.
 Program ma umożliwiać rysowanie, pracę na warstwach oraz wykorzystanie algorytmów do manipulacji pikselami.
 Dodatkowo projekt ma zawierać dodatkowe, pokazujące zastosowanie algorytmów i przetwarzania obrazu.
@@ -58,22 +59,23 @@ włączanie i wyłączanie widoczności warstw, Użytkownik musi mieć możliwo�
 9.1.3 listę warstw
 9.1.4 panel efektów warstwowych
 9.1.5 podgląd animacji
-
+   
 Wymagania niefunkcjonalne:
+   
 1. Wydajność
 1.1 Program powinien umożliwiać płynną edycję grafiki w czasie rzeczywistym.
 1.2 Operacje na pikselach powinny być wykonywane bez zauważalnych opóźnień.
 1.3 Podgląd animacji powinien działać płynnie.
-
+   
 2. Stabilność
 2.1 Program nie powinien ulegać awariom podczas normalnego użytkowania.
 2.2 Program powinien poprawnie obsługiwać błędy użytkownika (np. brak warstwy, brak klatki).
-
+   
 3. Użyteczność
 3.1 Interfejs użytkownika powinien być czytelny i intuicyjny.
 3.2 Wszystkie narzędzia powinny być łatwo dostępne z poziomu GUI.
 3.3 Użytkownik powinien mieć możliwość szybkiego przełączania między narzędziami.
-
+   
 4. Testowalność
 4.1 Algorytmy grafiki komputerowej powinny być możliwe do przetestowania.
 4.2 Program powinien umożliwiać sprawdzenie poprawności działania funkcji rysowania i filtrów.
