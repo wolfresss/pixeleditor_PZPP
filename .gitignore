@@ -1,0 +1,42 @@
+# build directory
+build/
+
+# cmake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+#automatic cmake clion generated folder
+cmake-build-debug/
+# executables
+*.exe
+*.out
+*.app
+
+# object files
+*.o
+*.obj
+*.lo
+
+# libraries
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+
+# logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.vcxproj*
+*.sln
+
+# mac
+.DS_Store
+
+# windows
+Thumbs.db
