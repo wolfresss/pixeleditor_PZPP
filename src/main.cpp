@@ -1,5 +1,5 @@
-#include <SDL3/SDL.h>
 #include <iostream>
+#include <SDL3/SDL.h>
 
 
 // NOTE:
@@ -9,7 +9,7 @@ int main()
 
     SDL_Window* window = SDL_CreateWindow(
         "Pixel Editor",
-        800,
+        1200,
         600,
         0
     );
