@@ -1,6 +1,11 @@
 # PA&AE_PZPP
+
+# STRUKTURA PLIKÓW
+/src - kod źródłowy
+  /core - prymitywne struktury(warstwa, plik etc.)
+/vendor - biblioteka SLD3
 # Temat wstępny: Pixel Art & Animation Editor 
-### Jezyk i bibliioteki: C++, SFML
+### Jezyk i bibliioteki: C++, SDL3
 
 #### Cel projektu: Przygotować program do tworzenia grafiki pikselowej i prostych animacji klatkowych.
 Program ma umożliwiać rysowanie, pracę na warstwach oraz wykorzystanie algorytmów do manipulacji pikselami.
