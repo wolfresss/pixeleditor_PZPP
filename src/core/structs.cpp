@@ -8,14 +8,15 @@ struct Pixel {
 };
 
 struct Layer {
-    int id;
+    int IdD;
+    int Id;
     std::string name; // Do microui
     bool visible = true;
     int width, height;
     std::vector<Pixel> pixels;
 
-    Layer(int id, std::string name, int w, int h)
-        : id(id), name(name), width(w), height(h), pixels(w * h, {0, 0, 0, 0}) {}
+    Layer( int id, std::string name, int w, int h)
+        : Id(id), name(name), width(w), height(h), pixels(w * h, {0, 0, 0, 0}) {}
 
     void setPixel(int x, int y, Pixel color) {
         if (x >= 0 && x < width && y >= 0 && y < height) {

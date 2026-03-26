@@ -15,5 +15,5 @@ public:
     CanvasRenderer(SDL_Renderer* renderer, int w, int h);
     ~CanvasRenderer();
 
-    void draw(SDL_Renderer* renderer, Document& doc);
+    void draw(SDL_Renderer* renderer, Document& doc, int OffsetX, int OffsetY );
 };

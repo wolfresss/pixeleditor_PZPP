@@ -23,11 +23,9 @@ CanvasRenderer::~CanvasRenderer() {
 }
 
 // Implementacja metody draw
-void CanvasRenderer::draw(SDL_Renderer* renderer, Document& doc) {
-    // Pobieramy dane z domeny (zwróć uwagę na const auto& - to optymalizacja)
+void CanvasRenderer::draw(SDL_Renderer* renderer, Document& doc, int OffsetX, int OffsetY) {
     const auto& compositeData = doc.composite();
 
-    // Kopiujemy do tekstury GPU
     SDL_UpdateTexture(
         canvasTexture,
         nullptr,
@@ -35,7 +33,12 @@ void CanvasRenderer::draw(SDL_Renderer* renderer, Document& doc) {
         width * sizeof(uint32_t)
     );
 
-    // Wyświetlamy na ekranie
-    SDL_FRect dst = { 0.0f, 0.0f, 600.0f, 600.0f };
+    SDL_FRect dst = {
+        (float)OffsetX,
+        (float)OffsetY,
+        (float)width,
+        (float)height
+    };
+
     SDL_RenderTexture(renderer, canvasTexture, nullptr, &dst);
 }

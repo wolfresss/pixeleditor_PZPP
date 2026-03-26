@@ -3,6 +3,7 @@
 // Forward declaration (opcjonalnie, zamiast include)
 class Document;
 
+//TO DO: pozbyc sie klas wirtualnych potem
 class ITool {
 public:
     virtual ~ITool() = default;
