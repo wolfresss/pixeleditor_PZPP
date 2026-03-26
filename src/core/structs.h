@@ -5,28 +5,36 @@
 #include <cstdint>
 #include <algorithm>
 
+typedef uint8_t RGB255;
+
 // Struktura reprezentująca pojedynczy kolor (RGBA)
 struct Pixel {
-    uint8_t r, g, b, a;
+    RGB255 r, g, b, a;
 };
 
 // Struktura pojedynczej warstwy
 struct Layer {
+    int documentId;
     int id;
     std::string name;
     bool visible = true;
     int width, height;
     std::vector<Pixel> pixels;
 
-    Layer(int id, std::string name, int w, int h)
-        : id(id), name(name), width(w), height(h), pixels(w * h, {0, 0, 0, 0}) {}
+    //TO DO: Dodac id dokumentu
+    Layer( int id, std::string name, int w, int h)
+        :  id(id), name(name), width(w), height(h), pixels(w * h, {0, 0, 0, 0}) {}
 
     // Metoda pomocnicza do bezpiecznego ustawiania piksela
+    // NOTE : chyba tu jest źle skalowanie , albo srodek dokumentu jest zle liczony po stronie main/view
+    //przy
     void setPixel(int x, int y, Pixel color) {
         if (x >= 0 && x < width && y >= 0 && y < height) {
-            pixels[y * width + x] = color;
+            pixels[y * width + x] = color; //aha jest inaczej kodowany piksel tutaj niz w domenie
         }
     }
+
+
 };
 
 class Document {
@@ -80,9 +88,9 @@ public:
                 } else {
                     // Prosty Alpha Blending
                     float a = src.a / 255.0f;
-                    cacheComposite[i].r = (uint8_t)(src.r * a + cacheComposite[i].r * (1.0f - a));
-                    cacheComposite[i].g = (uint8_t)(src.g * a + cacheComposite[i].g * (1.0f - a));
-                    cacheComposite[i].b = (uint8_t)(src.b * a + cacheComposite[i].b * (1.0f - a));
+                    cacheComposite[i].r = (RGB255)(src.r * a + cacheComposite[i].r * (1.0f - a));
+                    cacheComposite[i].g = (RGB255)(src.g * a + cacheComposite[i].g * (1.0f - a));
+                    cacheComposite[i].b = (RGB255)(src.b * a + cacheComposite[i].b * (1.0f - a));
                 }
             }
         }
