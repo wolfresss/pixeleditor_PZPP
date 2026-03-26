@@ -6,7 +6,6 @@
 #define PIXELEDITOR_IFILEMANAGER_H
 #pragma once
 #include "../core/structs.h"
-
 class IFileManager {
 public:
      ~IFileManager() {};
@@ -14,5 +13,4 @@ public:
   //  Layer CreateLayer(int DocumentId, int w, int h);
     bool DeleteLayer(int DocumentId, int LayerId);
 };
-
 #endif //PIXELEDITOR_IFILEMANAGER_H

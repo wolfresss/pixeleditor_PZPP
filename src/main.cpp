@@ -7,7 +7,9 @@
 #include "Tools/ITools.h"
 #include "Renderer/View.h"
 
-
+// TO DO : zmienic zmienne aby main uzywal structa z config
+#include "Renderer/Config.h"
+///////////////////////////////////
 extern "C" {
     #include "../microui/src/microui.h"
 }
@@ -58,12 +60,19 @@ void render_microui(SDL_Renderer* renderer, mu_Context* ctx) {
     }
 }
 
+
 // UI LOGIC (Ports and Adapters)
 void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& currentTool) {
     mu_begin(ctx);
 
-    // Okno narzędzi
+    mu_Real value = 50.0f;
+    char charvalue[32];
+    int widths[1] = {-1};
+
     if (mu_begin_window(ctx, "Toolbar", mu_rect(10, 10, 160, 150))) {
+
+        mu_layout_row(ctx, 1, widths, 0);
+
         if (mu_button(ctx, "Pencil")) {
             currentTool = std::make_unique<Pencil>();
         }
@@ -71,11 +80,16 @@ void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& cur
             currentTool = std::make_unique<Eraser>();
         }
 
+        mu_layout_row(ctx, 1, widths, 0);
+        if (mu_slider_ex(ctx, &value, 0, 100, 1, charvalue, sizeof(charvalue))) {
+            doc.currentLayerOpacity = value;  // przykład
+            doc.isModified = true;            // oznacz zmienione
+        }
+
         mu_label(ctx, "Layers:");
         for (size_t i = 0; i < doc.layers.size(); i++) {
             mu_text(ctx, doc.layers[i].name.c_str());
         }
-
 
         mu_end_window(ctx);
     }
@@ -91,7 +105,7 @@ int main(int argc, char* argv[]) {
 
     const int WIN_W = 800;
     const int WIN_H = 800;
-    const int CANVAS_SIZE = 400;
+    const int CANVAS_SIZE = 600;
 
     SDL_Window* window = SDL_CreateWindow("Pixel Editor", WIN_W, WIN_H, 0);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);

@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <cstdint>
+#include "Types.h"
 
 struct Pixel {
     uint8_t r, g, b, a;
@@ -58,9 +59,9 @@ public:
                 } else if (src.a > 0) {
                     // Piksel półprzezroczysty - proste mieszanie
                     float alpha = src.a / 255.0f;
-                    dst.r = (uint8_t)(src.r * alpha + dst.r * (1.0f - alpha));
-                    dst.g = (uint8_t)(src.g * alpha + dst.g * (1.0f - alpha));
-                    dst.b = (uint8_t)(src.b * alpha + dst.b * (1.0f - alpha));
+                    dst.r = (RGB255)(src.r * alpha + dst.r * (1.0f - alpha));
+                    dst.g = (RGB255)(src.g * alpha + dst.g * (1.0f - alpha));
+                    dst.b = (RGB255)(src.b * alpha + dst.b * (1.0f - alpha));
                     dst.a = 255; // Dla uproszczenia wynik zawsze nieprzezroczysty na razie
 
                     // TO DO: mieszanie warstw rozne tryby
