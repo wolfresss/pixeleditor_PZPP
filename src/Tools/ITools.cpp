@@ -19,7 +19,8 @@ void Eraser::execute(Document& doc, int x, int y, int PixelSize) {
     if (x >= 0 && x < layer.width && y >= 0 && y < layer.height) {
         // Gumka ustawia kolor na w pełni przezroczysty
         // TO DO: Kontrola przezroczystości gumki
-        layer.pixels[y * layer.width + x] = {0, 0, 0, 0};
+        Pixel drawColor = {0, 0, 0, 0};
+        layer.setPixels(x, y, drawColor,PixelSize);
         doc.markDirty();
     }
 }
