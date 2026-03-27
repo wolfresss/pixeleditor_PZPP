@@ -1,5 +1,5 @@
 #pragma once
-
+#include "../core/structs.h"
 // Forward declaration (opcjonalnie, zamiast include)
 class Document;
 
@@ -7,17 +7,17 @@ class Document;
 class ITool {
 public:
     virtual ~ITool() = default;
-    virtual void execute(Document& doc, int x, int y, int PixelSize)  = 0;
+    virtual void execute(Document& doc, int x, int y, int PixelSize, Color color)  = 0;
     virtual const char* getName() const = 0;
 };
 class Pencil : public ITool {
 public:
-    void execute(Document& doc, int x, int y, int PixelSize) override;
+    void execute(Document& doc, int x, int y, int PixelSize, Color color) override;
     const char* getName() const override;
 };
 
 class Eraser : public ITool {
 public:
-    void execute(Document& doc, int x, int y, int PixelSize) override;
+    void execute(Document& doc, int x, int y, int PixelSize, Color color) override;
     const char* getName() const override;
 };

@@ -4,9 +4,7 @@
 #include <cstdint>
 #include "Types.h"
 
-struct Pixel {
-    uint8_t r, g, b, a;
-};
+
 
 struct Layer {
     int IdD;
@@ -14,16 +12,23 @@ struct Layer {
     std::string name; // Do microui
     bool visible = true;
     int width, height;
-    std::vector<Pixel> pixels;
+    std::vector<Color> pixels;
 
     Layer( int id, std::string name, int w, int h)
         : Id(id), name(name), width(w), height(h), pixels(w * h, {0, 0, 0, 0}) {}
 
-    void setPixel(int x, int y, Pixel color) {
-        if (x >= 0 && x < width && y >= 0 && y < height) {
-            pixels[y * width + x] = color;
+
+   /* void setPixels_checkerboard(int cx, int cy, Color color, int r) {
+        for(int x = cx - r; x <= cx + r; ++x) {
+            for(int y = cy - r; y <= cy + r; ++y) {
+                int dx = x - cx, dy = y - cy;
+                if (dx * dx + dy * dy <= r * r && (dx + dy) % 2 == 0) {
+                    setPixel(x, y, color);
+                }
+            }
         }
-    }
+    } */
+
 };
 
 class Document {
@@ -42,16 +47,16 @@ public:
     Layer& activeLayer() { return layers[activeLayerIndex]; }
 
     // Do rendrowania warstw
-    std::vector<Pixel> composite() {
+    std::vector<Color> composite() {
         // Tworzymy pusty bufor wynikowy (przezroczysty)
-        std::vector<Pixel> result(width * height, {0, 0, 0, 255});
+        std::vector<Color> result(width * height, {0, 0, 0, 255});
 
         for (const auto& layer : layers) {
             if (!layer.visible) continue;
 
             for (size_t i = 0; i < layer.pixels.size(); ++i) {
-                const Pixel& src = layer.pixels[i];
-                Pixel& dst = result[i];
+                const Color& src = layer.pixels[i];
+                Color& dst = result[i];
 
                 // Prosty Alpha Blending (A over B)
                 if (src.a == 255) {
