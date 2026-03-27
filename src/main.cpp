@@ -19,12 +19,10 @@ int text_width(mu_Font font, const char *text, int len) {
     if (len == -1) len = (int)strlen(text);
     return len * 8; // Tymczasowo 8px/znak
 }
-
 int text_height(mu_Font font) {
-    return 16; // 16px wysokości linii
+    return 16; // 16px wysokości lini
 }
 
-// Most SDL ↔ MicroUI
 void render_microui(SDL_Renderer* renderer, mu_Context* ctx) {
     mu_Command* cmd = nullptr;
     while (mu_next_command(ctx, &cmd)) {

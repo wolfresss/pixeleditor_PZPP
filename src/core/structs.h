@@ -3,13 +3,13 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <thread>
+#include <cmath>  // dla std::ceil
 #include "Types.h"
 // Struktura reprezentująca pojedynczy kolor (RGBA)
 struct Pixel {
     RGB255 r, g, b, a;
 };
-
-
 // Struktura pojedynczej warstwy
 struct Layer {
     int documentId;
@@ -38,6 +38,33 @@ struct Layer {
         }
     }
 
+    //TO DO:
+    void snake_parallel(std::vector<Pixel>& pixels, int width, int height,
+                        int num_threads /*, processPixel*/) {
+        int total_pixels = width * height;
+        int pixels_per_thread = std::ceil((float)total_pixels / num_threads);
+
+        std::vector<std::thread> threads;
+        for (int t = 0; t < num_threads; ++t) {
+            int start_idx = t * pixels_per_thread;
+            int end_idx = std::min(start_idx + pixels_per_thread, total_pixels);
+
+            threads.emplace_back([&, start_idx, end_idx, width]() {
+                for (int idx = start_idx; idx < end_idx; ++idx) {
+                    // Snake: x = idx % width, y = idx / width (row-major)
+                    int x = idx % width;
+                    int y = idx / width;
+                    //processPixel(x, y, pixels[idx]);
+                }
+            });
+        }
+
+        for (auto& th : threads) th.join();
+    }
+    /*snake_parallel(pixels, width, height, 4, [](int x, int y, Pixel& p) {
+        // np. blur, gradient itp.
+        p.r = (x + y) % 256;
+    });*/
     void setPixels(int cx, int cy, Pixel color, int r) {
         for(int x = cx - r; x <= cx + r; ++x) {
             for(int y = cy - r; y <= cy + r; ++y) {
@@ -76,7 +103,6 @@ public:
     Layer& getActiveLayer() {
         return layers[activeLayerIndex];
     }
-
     // Powiadomienie dokumentu, że dane się zmieniły (np. po użyciu ołówka)
     void markDirty() {
         needsRedraw = true;
@@ -109,7 +135,6 @@ public:
                 }
             }
         }
-
         needsRedraw = false;
         return cacheComposite;
     }
