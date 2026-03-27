@@ -31,6 +31,7 @@ public:
     int width, height;
     std::vector<Layer> layers;
     int activeLayerIndex = 0;
+    int PixelSize = 1;
 
     Document(int w, int h) : width(w), height(h) {}
 

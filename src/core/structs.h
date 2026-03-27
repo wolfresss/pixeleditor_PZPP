@@ -9,6 +9,7 @@ struct Pixel {
     RGB255 r, g, b, a;
 };
 
+
 // Struktura pojedynczej warstwy
 struct Layer {
     int documentId;
@@ -18,19 +19,28 @@ struct Layer {
     int width, height;
     std::vector<Pixel> pixels;
 
-    //TO DO: Dodac id dokumentu
     Layer( int id, std::string name, int w, int h)
         :  id(id), name(name), width(w), height(h), pixels(w * h, {0, 0, 0, 0}) {}
 
-    // Metoda pomocnicza do bezpiecznego ustawiania piksela
-    // NOTE : chyba tu jest źle skalowanie , albo srodek dokumentu jest zle liczony po stronie main/view
-    //przy
     void setPixel(int x, int y, Pixel color) {
         if (x >= 0 && x < width && y >= 0 && y < height) {
-            pixels[y * width + x] = color; //aha jest inaczej kodowany piksel tutaj niz w domenie
+            pixels[y * width + x] = color;
         }
     }
-
+    // na razie basic snake algorytm dla testów z threads
+    // na razie pomysl jest taki ,ze mamy n pikseli i m watkow
+    // poniewaz piksele sa w wektorze [y * width + x]
+    // to trzeba to rozwiazac grupujac
+    void setPixels(int cx, int cy, Pixel color, int r) {
+        for(int x = cx - r; x <= cx + r; ++x) {
+            for(int y = cy - r; y <= cy + r; ++y) {
+                int dx = x - cx, dy = y - cy;
+                if(dx*dx + dy*dy <= r*r) {
+                    setPixel(x, y, color);
+                }
+            }
+        }
+    }
 
 };
 

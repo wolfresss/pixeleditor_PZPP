@@ -83,8 +83,7 @@ void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& cur
 
         mu_layout_row(ctx, 1, widths, 0);
         if (mu_slider_ex(ctx, &uiConfig.PixelSize , 0, 100, 1, charvalue, sizeof(charvalue))) {
-            //doc.currentLayerOpacity = value;  // przykład
-            //doc.isModified = true;            // oznacz zmienione
+            doc.PixelSize = uiConfig.PixelSize;
         }
 
         mu_label(ctx, "Layers:");
@@ -164,7 +163,7 @@ int main(int argc, char* argv[]) {
                     int canvasY = (int)localY;;
 
                     if (canvasX >= 0 && canvasX < CANVAS_SIZE && canvasY >= 0 && canvasY < CANVAS_SIZE) {
-                        currentTool->execute(doc, canvasX, canvasY);
+                        currentTool->execute(doc, canvasX, canvasY, (int)uiConfig.PixelSize);
                     }
                 }
             }
