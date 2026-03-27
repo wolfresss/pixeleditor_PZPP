@@ -27,10 +27,17 @@ struct Layer {
             pixels[y * width + x] = color;
         }
     }
-    // na razie basic snake algorytm dla testów z threads
-    // na razie pomysl jest taki ,ze mamy n pikseli i m watkow
-    // poniewaz piksele sa w wektorze [y * width + x]
-    // to trzeba to rozwiazac grupujac
+    void setPixels_checkerboard(int cx, int cy, Pixel color, int r) {
+        for(int x = cx - r; x <= cx + r; ++x) {
+            for(int y = cy - r; y <= cy + r; ++y) {
+                int dx = x - cx, dy = y - cy;
+                if (dx * dx + dy * dy <= r * r && (dx + dy) % 2 == 0) {
+                    setPixel(x, y, color);
+                }
+            }
+        }
+    }
+
     void setPixels(int cx, int cy, Pixel color, int r) {
         for(int x = cx - r; x <= cx + r; ++x) {
             for(int y = cy - r; y <= cy + r; ++y) {

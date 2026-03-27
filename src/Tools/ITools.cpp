@@ -5,7 +5,7 @@ void Pencil::execute(Document& doc, int x, int y, int PixelSize) {
     auto& layer = doc.getActiveLayer();
     Pixel drawColor = {0, 255, 255, 255};
     if (x >= 0 && x < layer.width && y >= 0 && y < layer.height) {
-       layer.setPixels(x, y, drawColor,PixelSize);
+       layer.setPixels_checkerboard(x, y, drawColor,PixelSize);
         //layer.pixels[y * layer.width + x] = drawColor;
         doc.markDirty();
     }

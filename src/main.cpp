@@ -6,33 +6,30 @@
 #include "core/structs.h"
 #include "Tools/ITools.h"
 #include "Renderer/View.h"
-
-// TO DO : zmienic zmienne aby main uzywal structa z config
 #include "Renderer/Config.h"
-UIConfig uiConfig;
-///////////////////////////////////
+
+UIConfig uiConfig = { 1.0f, 1 }; // scale domyślnie 1, PixelSize domyślnie 1
+
 extern "C" {
     #include "../microui/src/microui.h"
 }
 
 // MICROUI FONT HELPERS
-// MicroUI potrzebuje tych funkcji, aby wiedzieć jak układać przyciski i tekst
 int text_width(mu_Font font, const char *text, int len) {
     if (len == -1) len = (int)strlen(text);
-    return len * 8; // Przyjmujemy 8px na znak (tymczasowo bez SDL_ttf)
+    return len * 8; // Tymczasowo 8px/znak
 }
 
 int text_height(mu_Font font) {
-    return 16; // 16px wysokości linii na razie
+    return 16; // 16px wysokości linii
 }
 
-// Most pomiędzy SDL a microui
+// Most SDL ↔ MicroUI
 void render_microui(SDL_Renderer* renderer, mu_Context* ctx) {
-    mu_Command *cmd = NULL;
+    mu_Command* cmd = nullptr;
     while (mu_next_command(ctx, &cmd)) {
         switch (cmd->type) {
             case MU_COMMAND_RECT: {
-                //TO DO:  Naprawa błędu: Tworzymy zmienną na stosie, zamiast obiektu tymczasowego
                 SDL_FRect rect = {
                     (float)cmd->rect.rect.x,
                     (float)cmd->rect.rect.y,
@@ -44,7 +41,7 @@ void render_microui(SDL_Renderer* renderer, mu_Context* ctx) {
                 break;
             }
             case MU_COMMAND_TEXT: {
-                // Na razie rysujemy tylko tło pod tekst, dopóki nie dodam SDL_ttf
+                // Na razie ignorujemy tekst
                 break;
             }
             case MU_COMMAND_CLIP: {
@@ -61,16 +58,14 @@ void render_microui(SDL_Renderer* renderer, mu_Context* ctx) {
     }
 }
 
-
-// UI LOGIC (Ports and Adapters)
+// UI LOGIC
 void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& currentTool) {
     mu_begin(ctx);
-
 
     char charvalue[32];
     int widths[1] = {-1};
 
-    if (mu_begin_window(ctx, "Toolbar", mu_rect(10, 10, 160, 150))) {
+    if (mu_begin_window(ctx, "Toolbar", mu_rect(10, 10, 160, 200))) {
 
         mu_layout_row(ctx, 1, widths, 0);
 
@@ -81,9 +76,17 @@ void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& cur
             currentTool = std::make_unique<Eraser>();
         }
 
+        // PixelSize slider
         mu_layout_row(ctx, 1, widths, 0);
-        if (mu_slider_ex(ctx, &uiConfig.PixelSize , 0, 100, 1, charvalue, sizeof(charvalue))) {
+        if (mu_slider_ex(ctx, &uiConfig.PixelSize, 1, 100, 1, charvalue, sizeof(charvalue))) {
             doc.PixelSize = uiConfig.PixelSize;
+        }
+
+        // Scale slider
+        mu_layout_row(ctx, 1, widths, 0);
+        float value = uiConfig.scale;
+        if (mu_slider_ex(ctx, &value, 0.1f, 20.0f, 0.1f, charvalue, sizeof(charvalue))) {
+            uiConfig.scale = value;
         }
 
         mu_label(ctx, "Layers:");
@@ -105,7 +108,7 @@ int main(int argc, char* argv[]) {
 
     const int WIN_W = 800;
     const int WIN_H = 800;
-    const int CANVAS_SIZE = 600;
+    const int CANVAS_SIZE = 100;
 
     SDL_Window* window = SDL_CreateWindow("Pixel Editor", WIN_W, WIN_H, 0);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
@@ -118,9 +121,6 @@ int main(int argc, char* argv[]) {
     // VIEW / ADAPTERS
     CanvasRenderer canvasView(renderer, CANVAS_SIZE, CANVAS_SIZE);
 
-    // Do srodkowania canvas
-    int canvasOffsetX = (WIN_W - CANVAS_SIZE) / 2;
-    int canvasOffsetY = (WIN_H - CANVAS_SIZE) / 2;
     // MICROUI SETUP
     mu_Context* mu_ctx = new mu_Context();
     mu_init(mu_ctx);
@@ -131,8 +131,8 @@ int main(int argc, char* argv[]) {
     SDL_Event event;
 
     while (!quit) {
+        // Eventy
         while (SDL_PollEvent(&event)) {
-            // INPUT ADAPTER (Przekazywanie do MicroUI)
             switch (event.type) {
                 case SDL_EVENT_QUIT:
                     quit = true;
@@ -147,39 +147,40 @@ int main(int argc, char* argv[]) {
                     mu_input_mouseup(mu_ctx, (int)event.button.x, (int)event.button.y, MU_MOUSE_LEFT);
                     break;
             }
+        }
 
-            // 2. LOGIKA RYSOWANIA (Tylko jeśli myszka nie jest nad UI)
-            // Sprawdzamy hover_root (czy mysz jest nad jakimkolwiek oknem UI)
-            if (!mu_ctx->hover_root) {
-                float mX, mY;
-                Uint32 buttons = SDL_GetMouseState(&mX, &mY);
+        // Przeliczenie offsetów w każdej klatce
+        int canvasOffsetX = (WIN_W - (int)(CANVAS_SIZE * uiConfig.scale)) / 2;
+        int canvasOffsetY = (WIN_H - (int)(CANVAS_SIZE * uiConfig.scale)) / 2;
 
-                if (buttons & SDL_BUTTON_LMASK) {
-                    // Mapowanie współrzędnych okna na współrzędne canvasu
-                    float localX = mX - canvasOffsetX;
-                    float localY = mY - canvasOffsetY;
+        // LOGIKA RYSOWANIA
+        if (!mu_ctx->hover_root) {
+            float mX, mY;
+            Uint32 buttons = SDL_GetMouseState(&mX, &mY);
 
-                    int canvasX = (int)localX;
-                    int canvasY = (int)localY;;
+            if (buttons & SDL_BUTTON_LMASK) {
+                float localX = (mX - canvasOffsetX) / uiConfig.scale;
+                float localY = (mY - canvasOffsetY) / uiConfig.scale;
 
-                    if (canvasX >= 0 && canvasX < CANVAS_SIZE && canvasY >= 0 && canvasY < CANVAS_SIZE) {
-                        currentTool->execute(doc, canvasX, canvasY, (int)uiConfig.PixelSize);
-                    }
+                int canvasX = (int)localX;
+                int canvasY = (int)localY;
+
+                if (canvasX >= 0 && canvasX < CANVAS_SIZE &&
+                    canvasY >= 0 && canvasY < CANVAS_SIZE) {
+                    currentTool->execute(doc, canvasX, canvasY, (int)uiConfig.PixelSize);
                 }
             }
         }
 
-        //  UI LOGIC (Budowanie interfejsu)
+        // UI LOGIC
         process_microui(mu_ctx, doc, currentTool);
 
-        //  RENDERING
-        SDL_SetRenderDrawColor(renderer, 35, 35, 38, 255); // Tło edytora
+        // RENDER
+        SDL_SetRenderDrawColor(renderer, 35, 35, 38, 255); // tło edytora
         SDL_RenderClear(renderer);
 
-        // Rysujemy płótno (Piksele z Dokumentu)
-        canvasView.draw(renderer, doc, canvasOffsetX, canvasOffsetY);
+        canvasView.draw(renderer, doc, canvasOffsetX, canvasOffsetY, uiConfig.scale);
 
-        // Rysujemy MicroUI na wierzchu (Przycisk i okna)
         render_microui(renderer, mu_ctx);
 
         SDL_RenderPresent(renderer);
