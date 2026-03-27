@@ -9,6 +9,7 @@
 
 // TO DO : zmienic zmienne aby main uzywal structa z config
 #include "Renderer/Config.h"
+UIConfig uiConfig;
 ///////////////////////////////////
 extern "C" {
     #include "../microui/src/microui.h"
@@ -65,7 +66,7 @@ void render_microui(SDL_Renderer* renderer, mu_Context* ctx) {
 void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& currentTool) {
     mu_begin(ctx);
 
-    mu_Real value = 50.0f;
+
     char charvalue[32];
     int widths[1] = {-1};
 
@@ -81,9 +82,9 @@ void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& cur
         }
 
         mu_layout_row(ctx, 1, widths, 0);
-        if (mu_slider_ex(ctx, &value, 0, 100, 1, charvalue, sizeof(charvalue))) {
-            doc.currentLayerOpacity = value;  // przykład
-            doc.isModified = true;            // oznacz zmienione
+        if (mu_slider_ex(ctx, &uiConfig.PixelSize , 0, 100, 1, charvalue, sizeof(charvalue))) {
+            //doc.currentLayerOpacity = value;  // przykład
+            //doc.isModified = true;            // oznacz zmienione
         }
 
         mu_label(ctx, "Layers:");
