@@ -3,40 +3,72 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <thread>
+#include <cmath>
 #include "Types.h"
-// Struktura reprezentująca pojedynczy kolor (RGBA)
-struct Pixel {
-    RGB255 r, g, b, a;
-};
 
-// Struktura pojedynczej warstwy
 struct Layer {
     int documentId;
     int id;
     std::string name;
     bool visible = true;
     int width, height;
-    std::vector<Pixel> pixels;
+    std::vector<Color> pixels;
 
-    //TO DO: Dodac id dokumentu
     Layer( int id, std::string name, int w, int h)
         :  id(id), name(name), width(w), height(h), pixels(w * h, {0, 0, 0, 0}) {}
 
-    // Metoda pomocnicza do bezpiecznego ustawiania piksela
-    // NOTE : chyba tu jest źle skalowanie , albo srodek dokumentu jest zle liczony po stronie main/view
-    //przy
-    void setPixel(int x, int y, Pixel color) {
+
+    void setPixel(int x, int y, Color color) {
         if (x >= 0 && x < width && y >= 0 && y < height) {
-            pixels[y * width + x] = color; //aha jest inaczej kodowany piksel tutaj niz w domenie
+            pixels[y * width + x] = color;
         }
     }
+    void setPixels_checkerboard(int cx, int cy, int r, Color color);
+        void setPixels(int cx, int cy, int r, Color color) {
+        for(int x = cx - r; x <= cx + r; ++x) {
+            for(int y = cy - r; y <= cy + r; ++y) {
+                int dx = x - cx, dy = y - cy;
+                if(dx*dx + dy*dy <= r*r) {
+                    setPixel(x, y, color);
+                }
+            }
+        }
+    }
+    //TO DO:
+    void snake_parallel(std::vector<Color>& pixels, int width, int height,
+                        int num_threads /*, processPixel*/) {
+        int total_pixels = width * height;
+        int pixels_per_thread = std::ceil((float)total_pixels / num_threads);
+
+        std::vector<std::thread> threads;
+        for (int t = 0; t < num_threads; ++t) {
+            int start_idx = t * pixels_per_thread;
+            int end_idx = std::min(start_idx + pixels_per_thread, total_pixels);
+
+            threads.emplace_back([&, start_idx, end_idx, width]() {
+                for (int idx = start_idx; idx < end_idx; ++idx) {
+                    // Snake: x = idx % width, y = idx / width (row-major)
+                    int x = idx % width;
+                    int y = idx / width;
+                    //processPixel(x, y, pixels[idx]);
+                }
+            });
+        }
+
+        for (auto& th : threads) th.join();
+    }
+    /*snake_parallel(pixels, width, height, 4, [](int x, int y, Pixel& p) {
+        // np. blur, gradient itp.
+        p.r = (x + y) % 256;
+    });*/
 
 
 };
 
 class Document {
 private:
-    std::vector<Pixel> cacheComposite; // Bufor przechowujący ostatni wynik kompozycji
+    std::vector<Color> cacheComposite; // Bufor przechowujący ostatni wynik kompozycji
     bool needsRedraw = true;           // Flaga "brudnego" obrazu
 
 public:
@@ -59,26 +91,25 @@ public:
     Layer& getActiveLayer() {
         return layers[activeLayerIndex];
     }
-
     // Powiadomienie dokumentu, że dane się zmieniły (np. po użyciu ołówka)
     void markDirty() {
         needsRedraw = true;
     }
 
     // Metoda składająca warstwy w jeden obraz
-    const std::vector<Pixel>& composite() {
+    const std::vector<Color>& composite() {
         if (!needsRedraw) {
             return cacheComposite; // Zwróć gotowy obraz, jeśli nic się nie zmieniło
         }
 
         // Czyścimy bufor (tło edytora, np. szachownica lub ciemny szary)
-        std::fill(cacheComposite.begin(), cacheComposite.end(), Pixel{30, 30, 30, 255});
+        std::fill(cacheComposite.begin(), cacheComposite.end(), Color{30, 30, 30, 255});
 
         for (const auto& layer : layers) {
             if (!layer.visible) continue;
 
             for (size_t i = 0; i < layer.pixels.size(); ++i) {
-                const Pixel& src = layer.pixels[i];
+                const Color& src = layer.pixels[i];
                 if (src.a == 0) continue; // Pomiń w pełni przezroczyste
 
                 if (src.a == 255) {
@@ -92,7 +123,6 @@ public:
                 }
             }
         }
-
         needsRedraw = false;
         return cacheComposite;
     }

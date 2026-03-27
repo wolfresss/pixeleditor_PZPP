@@ -5,5 +5,8 @@
 
 // different names for code organization
 
-// DOMAIN
 typedef uint8_t RGB255;
+
+struct Color {
+    RGB255 r, g, b, a;
+};
