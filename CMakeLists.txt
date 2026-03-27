@@ -23,6 +23,7 @@ add_executable(pixel_editor ${SRC_FILES}
         src/Tools/IFileManager.h
         src/core/Types.h
         src/Renderer/Config.h
+        src/Renderer/UI.cpp
 )
 
 target_link_libraries(pixel_editor PRIVATE SDL3::SDL3)
