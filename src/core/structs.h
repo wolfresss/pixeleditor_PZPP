@@ -2,11 +2,8 @@
 
 #include <vector>
 #include <string>
-#include <cstdint>
 #include <algorithm>
-
-typedef uint8_t RGB255;
-
+#include "Types.h"
 // Struktura reprezentująca pojedynczy kolor (RGBA)
 struct Pixel {
     RGB255 r, g, b, a;
@@ -46,6 +43,7 @@ public:
     int width, height;
     std::vector<Layer> layers;
     int activeLayerIndex = 0;
+    int PixelSize = 1;
 
     Document(int w, int h) : width(w), height(h) {
         cacheComposite.resize(w * h, {0, 0, 0, 255});
