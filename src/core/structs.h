@@ -22,7 +22,7 @@ struct Layer {
     // void setPixels_checkerboard(int cx, int cy, Color color, int r);
 };
 
-class Document {
+struct Document {
 public:
     int width;
     int height;
