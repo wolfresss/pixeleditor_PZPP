@@ -5,8 +5,8 @@
 
 // different names for code organization
 
-typedef uint8_t RGB255;
+typedef uint8_t RGBA255;
 
 struct Color {
-    RGB255 r, g, b, a;
+    RGBA255 r, g, b, a;
 };

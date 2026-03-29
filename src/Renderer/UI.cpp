@@ -1,6 +1,8 @@
 //
 // Created by izakr on 27/03/2026.
 //
+#include <memory>
+
 #include "View.h"
 void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& currentTool, UIConfig &uiConfig) {
     mu_begin(ctx);
@@ -39,28 +41,28 @@ void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& cur
         mu_label(ctx, "R:");
         mu_Real R = uiConfig.R;
         if (mu_slider_ex(ctx, &R, 0.0f, 255.0f, 1.0f, charvalue, sizeof(charvalue))) {
-            uiConfig.R = static_cast<RGB255>(R + 0.5f);
+            uiConfig.R = static_cast<RGBA255>(R + 0.5f);
         }
 
         mu_layout_row(ctx, 1, widths, 0);
         mu_label(ctx, "G:");
         mu_Real G = uiConfig.G;
         if (mu_slider_ex(ctx, &G, 0.0f, 255.0f, 1.0f, charvalue, sizeof(charvalue))) {
-            uiConfig.G = static_cast<RGB255>(G + 0.5f);
+            uiConfig.G = static_cast<RGBA255>(G + 0.5f);
         }
 
         mu_layout_row(ctx, 1, widths, 0);
         mu_label(ctx, "B:");
         mu_Real B = uiConfig.B;
         if (mu_slider_ex(ctx, &B, 0.0f, 255.0f, 1.0f, charvalue, sizeof(charvalue))) {
-            uiConfig.B = static_cast<RGB255>(B + 0.5f);
+            uiConfig.B = static_cast<RGBA255>(B + 0.5f);
         }
 
         mu_layout_row(ctx, 1, widths, 0);
         mu_label(ctx, "A:");
         mu_Real A = uiConfig.A;
         if (mu_slider_ex(ctx, &A, 0.0f, 255.0f, 1.0f, charvalue, sizeof(charvalue))) {
-            uiConfig.A = static_cast<RGB255>(A + 0.5f);
+            uiConfig.A = static_cast<RGBA255>(A + 0.5f);
         }
 
         mu_layout_row(ctx, 1, widths, 50); // wysokość prostokąta 50px
