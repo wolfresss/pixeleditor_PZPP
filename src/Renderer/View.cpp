@@ -1,4 +1,5 @@
 #include "View.h"
+#include "../core/structs.h"
 
 CanvasRenderer::CanvasRenderer(SDL_Renderer* renderer, int w, int h)
     : width(w), height(h) {

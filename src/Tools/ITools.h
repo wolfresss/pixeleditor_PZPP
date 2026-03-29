@@ -1,5 +1,5 @@
 #pragma once
-#include "../core/structs.h"
+ #include "../core/structs.h"
 // Forward declaration (opcjonalnie, zamiast include)
 class Document;
 
