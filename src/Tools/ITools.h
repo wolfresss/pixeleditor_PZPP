@@ -2,7 +2,11 @@
  #include "../core/structs.h"
 // Forward declaration (opcjonalnie, zamiast include)
 class Document;
-
+enum class ToolEvent {
+	Down,//zapis stanu startowego, klikniecie
+	Move,//ruch myszki
+	Up//zapis stanu końcowego, puszczenie przycisku myszki
+};
 //TO DO: pozbyc sie klas wirtualnych potem
 class ITool {
 public:
@@ -21,3 +25,7 @@ public:
     void execute(Document& doc, int x, int y, int PixelSize, Color color) override;
     const char* getName() const override;
 };
+
+
+
+
