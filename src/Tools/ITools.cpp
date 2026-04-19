@@ -28,6 +28,58 @@ void Eraser::execute(Document& doc, int x, int y, int PixelSize, Color drawcolor
 const char* Eraser::getName() const {
     return "Eraser";
 }
+void LineTool::execute(Document& doc,
+    ToolEvent event,
+    int x,
+    int y,
+    int PixelSize,
+    Color color)
+{
+    if (event == ToolEvent::Down) {
+        active = true;
+        sx = x;
+        sy = y;
+        return;
+    }
+
+    if (event == ToolEvent::Up && active) {
+
+        int dx = abs(x - sx);
+        int dy = abs(y - sy);
+
+        int x0 = sx;
+        int y0 = sy;
+
+        int x1 = x;
+        int y1 = y;
+
+        int sxStep = (x0 < x1) ? 1 : -1;
+        int syStep = (y0 < y1) ? 1 : -1;
+
+        int err = dx - dy;
+
+        while (true) {
+            doc.setPixel(x0, y0, color, PixelSize);
+
+            if (x0 == x1 && y0 == y1)
+                break;
+
+            int e2 = 2 * err;
+
+            if (e2 > -dy) {
+                err -= dy;
+                x0 += sxStep;
+            }
+
+            if (e2 < dx) {
+                err += dx;
+                y0 += syStep;
+            }
+        }
+
+        active = false;
+    }
+}
 class RectangleTool : public ITool {
 private:
     bool active = false;

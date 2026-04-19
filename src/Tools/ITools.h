@@ -25,6 +25,21 @@ public:
     void execute(Document& doc, int x, int y, int PixelSize, Color color) override;
     const char* getName() const override;
 };
+class LineTool : public ITool {
+private:
+    bool active = false;
+    int sx = 0, sy = 0;
+
+public:
+    const char* getName() const override { return "Line"; }
+
+    void execute(Document& doc,
+        ToolEvent event,
+        int x,
+        int y,
+        int PixelSize,
+        Color color) override;
+};
 
 
 
