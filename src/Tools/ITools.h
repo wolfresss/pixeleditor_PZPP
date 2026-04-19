@@ -40,7 +40,17 @@ public:
         int PixelSize,
         Color color) override;
 };
+class FloodFillTool : public ITool {//narazie prosty floodfill bez rekurencji
+public:
+    const char* getName() const override { return "FloodFill"; }
 
+    void execute(Document& doc,
+        ToolEvent event,
+        int x,
+        int y,
+        int PixelSize,
+        Color color) override;
+};
 
 
 

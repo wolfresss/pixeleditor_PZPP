@@ -1,5 +1,6 @@
 #include "ITools.h"
-
+#include <queue>
+//znaleźc lepszy sposób na floodfill bez queue
 
 
 void Pencil::execute(Document& doc, int x, int y, int PixelSize, Color drawColor) {
@@ -176,5 +177,41 @@ public:
         }
     }
 };
+
+
+
+void FloodFillTool::execute(Document& doc,
+    ToolEvent event,
+    int x,
+    int y,
+    int PixelSize,
+    Color color)
+{
+    if (event != ToolEvent::Down)
+        return;
+
+    Color target = doc.getPixel(x, y);
+    if (target == color)
+        return;
+
+    std::queue<std::pair<int, int>> q;
+    q.push({ x, y });
+
+    while (!q.empty()) {
+        auto [cx, cy] = q.front();
+        q.pop();
+
+        Color current = doc.getPixel(cx, cy);
+        if (current != target)
+            continue;
+
+        doc.setPixel(cx, cy, color, PixelSize);
+
+        q.push({ cx + PixelSize, cy });
+        q.push({ cx - PixelSize, cy });
+        q.push({ cx, cy + PixelSize });
+        q.push({ cx, cy - PixelSize });
+    }
+}
 
 
