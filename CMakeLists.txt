@@ -12,6 +12,8 @@ file(GLOB_RECURSE SRC_FILES src/*.cpp)
 add_executable(pixel_editor
     ${SRC_FILES}
     microui/src/microui.c
+  
+   
 )
 
 # include paths
@@ -32,9 +34,5 @@ target_link_libraries(pixel_editor PRIVATE SDL3::SDL3)
      #   src/Renderer/View.cpp
       #  src/Renderer/View.h
        # microui/src/microui.c
-        #microui/src/microui.h
-       
-    
+        #microui/src/microui.h  
 #)
-
-target_link_libraries(pixel_editor PRIVATE SDL3::SDL3)
