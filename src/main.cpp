@@ -60,34 +60,48 @@ void render_microui(SDL_Renderer* renderer, mu_Context* ctx) {
 }
 
 // UI LOGIC (Ports and Adapters)
-void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& currentTool) {
+void process_microui(mu_Context* ctx, Document& doc,std::unique_ptr<ITool>& currentTool,int& currentColorIndex) {
     mu_begin(ctx);
 
     // Okno narzędzi
-    if (mu_begin_window(ctx, "Toolbar", mu_rect(10, 10, 160, 150))) {
+    if (mu_begin_window(ctx, "Toolbar", mu_rect(620, 10, 160, 550))) {
         if (mu_button(ctx, "Pencil")) {
             currentTool = std::make_unique<Pencil>();
         }
         if (mu_button(ctx, "Eraser")) {
             currentTool = std::make_unique<Eraser>();
         }
+        mu_label(ctx, "Colors:");
+
+        const char* names[6] = {
+            "Gray", "White", "Yellow",
+            "Red", "Green", "Blue"
+        };
+
+        for (int i = 0; i < 6; i++) {
+            if (mu_button(ctx, names[i])) {
+               currentColorIndex = i;
+            }
+        }
 
         mu_label(ctx, "Layers:");
         for (size_t i = 0; i < doc.layers.size(); i++) {
             mu_text(ctx, doc.layers[i].name.c_str());
         }
+
         mu_end_window(ctx);
     }
-
+    
     mu_end(ctx);
 }
 
 int main(int argc, char* argv[]) {
+ int currentColorIndex = 0;
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
     }
-
+   
     const int WIN_W = 800;
     const int WIN_H = 600;
     const int CANVAS_SIZE = 256;
@@ -146,14 +160,14 @@ int main(int argc, char* argv[]) {
                     if (mX >= canvasRect.x && mX < canvasRect.x + canvasRect.w &&
                         mY >= canvasRect.y && mY < canvasRect.y + canvasRect.h)
                     {
-                        currentTool->execute(doc, canvasX, canvasY);
+                        currentTool->execute(doc, canvasX, canvasY, PALETTE[currentColorIndex]);
                     }
                 }
             }
         }
 
         //  UI LOGIC (Budowanie interfejsu)
-        process_microui(mu_ctx, doc, currentTool);
+        process_microui(mu_ctx, doc, currentTool, currentColorIndex);
 
         //  RENDERING
         SDL_SetRenderDrawColor(renderer, 35, 35, 38, 255); // Tło edytora

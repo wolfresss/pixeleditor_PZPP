@@ -9,7 +9,14 @@
 struct Pixel {
     uint8_t r, g, b, a;
 };
-
+static const Pixel PALETTE[6] = {
+    {128, 128, 128, 255}, // szary
+    {255, 255, 255, 255}, // biały
+    {255, 255, 0,   255}, // żółty
+    {255, 0,   0,   255}, // czerwony
+    {0,   255, 0,   255}, // zielony
+    {0,   0,   255, 255}  // niebieski
+};
 // Struktura pojedynczej warstwy
 struct Layer {
     int id;
