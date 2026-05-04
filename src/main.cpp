@@ -23,6 +23,7 @@ int text_height(mu_Font font) {
     return 16; // 16px wysokości linii na razie
 }
 
+
 // Most pomiędzy SDL a microui
 void render_microui(SDL_Renderer* renderer, mu_Context* ctx) {
     mu_Command *cmd = NULL;
