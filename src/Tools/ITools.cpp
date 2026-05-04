@@ -2,15 +2,12 @@
 #include "../core/structs.h"
 
 
-void Pencil::execute(Document& doc, int x, int y) {
+void Pencil::execute(Document& doc, int x, int y, Pixel color) {
 
     auto& layer = doc.getActiveLayer();
 
-
-    Pixel drawColor = {255, 255, 255, 255};
-
     if (x >= 0 && x < layer.width && y >= 0 && y < layer.height) {
-        layer.pixels[y * layer.width + x] = drawColor;
+        layer.pixels[y * layer.width + x] = color;
         doc.markDirty();
     }
 }
@@ -20,7 +17,7 @@ const char* Pencil::getName() const {
 }
 
 
-void Eraser::execute(Document& doc, int x, int y) {
+void Eraser::execute(Document& doc, int x, int y, Pixel color) {
     auto& layer = doc.getActiveLayer();
 
     if (x >= 0 && x < layer.width && y >= 0 && y < layer.height) {
