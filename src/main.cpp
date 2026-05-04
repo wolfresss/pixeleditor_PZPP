@@ -138,10 +138,14 @@ int main(int argc, char* argv[]) {
 
                 if (buttons & SDL_BUTTON_LMASK) {
                     // Mapowanie współrzędnych okna na współrzędne canvasu
-                    int canvasX = static_cast<int>((mX / WIN_W) * CANVAS_SIZE);
-                    int canvasY = static_cast<int>((mY / WIN_H) * CANVAS_SIZE);
+                    SDL_FRect canvasRect = { 0.0f, 0.0f, 600.0f, 600.0f };
 
-                    if (canvasX >= 0 && canvasX < CANVAS_SIZE && canvasY >= 0 && canvasY < CANVAS_SIZE) {
+                    int canvasX = (int)((mX - canvasRect.x) / canvasRect.w * CANVAS_SIZE);
+                    int canvasY = (int)((mY - canvasRect.y) / canvasRect.h * CANVAS_SIZE);
+
+                    if (mX >= canvasRect.x && mX < canvasRect.x + canvasRect.w &&
+                        mY >= canvasRect.y && mY < canvasRect.y + canvasRect.h)
+                    {
                         currentTool->execute(doc, canvasX, canvasY);
                     }
                 }
