@@ -6,14 +6,13 @@
 #include "core/structs.h"
 #include "Tools/ITools.h"
 #include "Renderer/View.h"
-#include <SDL_ttf.h>
 
 
 extern "C" {
     #include "../microui/src/microui.h"
 }
 
-TTF_Font* font = nullptr;
+/////////////////TTF_Font* font = nullptr;
 // MICROUI FONT HELPERS
 // MicroUI potrzebuje tych funkcji, aby wiedzieć jak układać przyciski i tekst
 int text_width(mu_Font font, const char *text, int len) {
@@ -45,7 +44,7 @@ void render_microui(SDL_Renderer* renderer, mu_Context* ctx) {
             }
             case MU_COMMAND_TEXT: {
 
-                if (!font) break;
+                /*if (!font) break;
 
                 const char* txt = cmd->text.str ? cmd->text.str : "";
 
@@ -70,7 +69,7 @@ void render_microui(SDL_Renderer* renderer, mu_Context* ctx) {
 
                 SDL_DestroyTexture(tex);
                 SDL_DestroySurface(surf);
-
+                */
                 break;
             }
             case MU_COMMAND_CLIP: {
@@ -143,14 +142,14 @@ int main(int argc, char* argv[]) {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
     }
-    TTF_Init();
+   //// TTF_Init();
 
-    font = TTF_OpenFont("minecraft.ttf", 8);
+   //// font = TTF_OpenFont("minecraft.ttf", 8);
 
-    if (!font) {
-        std::cerr << "TTF error: " << TTF_GetError() << std::endl;
-    }
-   // TTF_SetFontHinting(font, TTF_HINTING_MONO);
+   // if (!font) {
+   //     std::cerr << "TTF error: " << TTF_GetError() << std::endl;
+   // }
+   //// TTF_SetFontHinting(font, TTF_HINTING_MONO);
     const int WIN_W = 800;
     const int WIN_H = 600;
     const int CANVAS_SIZE = 256;
@@ -230,8 +229,8 @@ int main(int argc, char* argv[]) {
 
         SDL_RenderPresent(renderer);
     }
-    TTF_CloseFont(font);
-    TTF_Quit();
+  //  TTF_CloseFont(font);
+   // TTF_Quit();
     delete mu_ctx;
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
