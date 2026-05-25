@@ -20,11 +20,13 @@ add_executable(pixel_editor
 target_include_directories(pixel_editor PRIVATE
     src
     microui/src
+        vendor/SDL/include
+       /vendor/SDL322_ttf/include
 )
 
 # linkowanie SDL
 target_link_libraries(pixel_editor PRIVATE SDL3::SDL3)
-
+link_directories(${CMAKE_SOURCE_DIR}/vendor/sdl322_ttf/lib)
 #add_executable(pixel_editor ${SRC_FILES}###gdyby koniecznie dodać ręcznie, ale lepiej globem
 
  #       src/core/structs.cpp

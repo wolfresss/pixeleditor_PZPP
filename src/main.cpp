@@ -6,12 +6,14 @@
 #include "core/structs.h"
 #include "Tools/ITools.h"
 #include "Renderer/View.h"
+#include <SDL_ttf.h>
 
 
 extern "C" {
     #include "../microui/src/microui.h"
 }
 
+TTF_Font* font = nullptr;
 // MICROUI FONT HELPERS
 // MicroUI potrzebuje tych funkcji, aby wiedzieć jak układać przyciski i tekst
 int text_width(mu_Font font, const char *text, int len) {
@@ -42,7 +44,33 @@ void render_microui(SDL_Renderer* renderer, mu_Context* ctx) {
                 break;
             }
             case MU_COMMAND_TEXT: {
-                // Na razie rysujemy tylko tło pod tekst, dopóki nie dodam SDL_ttf
+
+                if (!font) break;
+
+                const char* txt = cmd->text.str ? cmd->text.str : "";
+
+                SDL_Color col = {
+                    cmd->text.color.r,
+                    cmd->text.color.g,
+                    cmd->text.color.b,
+                    cmd->text.color.a
+                };
+
+                SDL_Surface* surf = TTF_RenderText_Blended(font, txt, col);
+                SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
+
+                SDL_FRect dst = {
+                    (float)cmd->text.pos.x,
+                    (float)cmd->text.pos.y,
+                    (float)surf->w,
+                    (float)surf->h
+                };
+
+                SDL_RenderCopy(renderer, tex, nullptr, &dst);
+
+                SDL_DestroyTexture(tex);
+                SDL_DestroySurface(surf);
+
                 break;
             }
             case MU_COMMAND_CLIP: {
@@ -72,17 +100,13 @@ void process_microui(mu_Context* ctx, Document& doc,std::unique_ptr<ITool>& curr
             currentTool = std::make_unique<Eraser>();
         }
         mu_label(ctx, "Colors:");
-       // mu_layout_row(ctx, 6, (int[]) { 20, 20, 20, 20, 20, 20 }, 20);
+		// mu_layout_row(ctx, 6, (int[]) { 20, 20, 20, 20, 20, 20 }, 20); rozmiar przycisków kolorów
         const char* names[6] = {
             "Gray", "White", "Yellow",
             "Red", "Green", "Blue"
         };
 
-       /* for (int i = 0; i < 6; i++) {
-            if (mu_button(ctx, names[i])) {
-               currentColorIndex = i;
-            }
-        }*/
+      
 
         for (int i = 0; i < 6; i++) {
 
@@ -119,7 +143,14 @@ int main(int argc, char* argv[]) {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
     }
-   
+    TTF_Init();
+
+    font = TTF_OpenFont("minecraft.ttf", 8);
+
+    if (!font) {
+        std::cerr << "TTF error: " << TTF_GetError() << std::endl;
+    }
+   // TTF_SetFontHinting(font, TTF_HINTING_MONO);
     const int WIN_W = 800;
     const int WIN_H = 600;
     const int CANVAS_SIZE = 256;
@@ -199,7 +230,8 @@ int main(int argc, char* argv[]) {
 
         SDL_RenderPresent(renderer);
     }
-
+    TTF_CloseFont(font);
+    TTF_Quit();
     delete mu_ctx;
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
