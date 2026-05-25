@@ -72,15 +72,33 @@ void process_microui(mu_Context* ctx, Document& doc,std::unique_ptr<ITool>& curr
             currentTool = std::make_unique<Eraser>();
         }
         mu_label(ctx, "Colors:");
-
+       // mu_layout_row(ctx, 6, (int[]) { 20, 20, 20, 20, 20, 20 }, 20);
         const char* names[6] = {
             "Gray", "White", "Yellow",
             "Red", "Green", "Blue"
         };
 
-        for (int i = 0; i < 6; i++) {
+       /* for (int i = 0; i < 6; i++) {
             if (mu_button(ctx, names[i])) {
                currentColorIndex = i;
+            }
+        }*/
+
+        for (int i = 0; i < 6; i++) {
+
+            mu_Rect r = mu_layout_next(ctx);
+
+            mu_draw_rect(ctx, r,
+                mu_color(
+                    PALETTE[i].r,
+                    PALETTE[i].g,
+                    PALETTE[i].b,
+                    255
+                )
+            );
+
+            if (mu_mouse_over(ctx, r) && ctx->mouse_pressed == MU_MOUSE_LEFT) {
+                currentColorIndex = i;
             }
         }
 

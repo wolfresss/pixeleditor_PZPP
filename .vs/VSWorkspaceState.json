@@ -6,7 +6,15 @@
     ]
   },
   "ExpandedNodes": [
-    ""
+    "",
+    "\\microui",
+    "\\microui\\src",
+    "\\src",
+    "\\src\\core",
+    "\\src\\Tools",
+    "\\vendor",
+    "\\vendor\\SDL"
   ],
+  "SelectedNode": "\\src\\main.cpp",
   "PreviewInSolutionExplorer": false
 }
