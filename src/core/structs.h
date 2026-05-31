@@ -5,32 +5,26 @@
 
 
 struct Layer {
-    int IdD;
-    int Id;
+    u32 IdD;
+    u32 Id;
     std::string name; // Do microui
     bool visible = true;
-    int width;
-    int height;
+    u32 width;
+    u32 height;
+    uint32_t DataOffset;
     std::vector<Color> pixels;
-
-
-    Layer(int id, std::string name, int w, int h);
-    void setPixel(int x, int y, Color color);
-    void setPixels(int cx, int cy, int r, Color color);
-
-
-    // void setPixels_checkerboard(int cx, int cy, Color color, int r);
+    Layer(int id, std::string name, u32 w, u32 h);
+    void setPixel(u32 x, u32 y, Color color);
+    void setPixels(u32 cx, u32 cy, u32 r, Color color);
 };
 
 struct Document {
-public:
-    int width;
-    int height;
+    u32 width;
+    u32 height;
     std::vector<Layer> layers;
     int activeLayerIndex = 0;
     int PixelSize = 1;
-
-    Document(int w, int h);
+    Document(u32 w, u32 h);
     void addLayer(std::string name);
     Layer& activeLayer();
     std::vector<Color> composite();
