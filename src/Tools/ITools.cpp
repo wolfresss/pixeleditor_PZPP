@@ -1,7 +1,5 @@
 #include "ITools.h"
 
-
-
 void Pencil::execute(Document& doc, int x, int y, int PixelSize, Color drawColor) {
 
     auto& layer = doc.activeLayer();
