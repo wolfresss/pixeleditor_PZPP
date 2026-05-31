@@ -18,8 +18,6 @@ struct ppe_header
     u32 MagicValue;
     u32 h;
     u32 w;
-   // u32 LayersCount;
-    //u64 TagOffset;
     u32 PixelsPerLayer;
     u64 PixelOffset;
 };

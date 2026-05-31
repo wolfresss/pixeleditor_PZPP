@@ -1,21 +1,20 @@
 #include "structs.h"
 
-Layer::Layer(int id, std::string name, int w, int h)
+Layer::Layer(int id, std::string name, u32 w, u32 h)
     : Id(id), name(name),
 width(w), height(h),
 pixels(w * h, {0, 0, 0, 0}
-    //offset for header file
 )
 {
 }
 
-void Layer::setPixel(int x, int y, Color color) {
+void Layer::setPixel(u32 x, u32 y, Color color) {
     if (x >= 0 && x < width && y >= 0 && y < height) {
         pixels[y * width + x] = color;
     }
 }
 
-void Layer::setPixels(int cx, int cy, int r, Color color) {
+void Layer::setPixels(u32 cx, u32 cy, u32 r, Color color) {
     for(int x = cx - r; x <= cx + r; ++x) {
         for(int y = cy - r; y <= cy + r; ++y) {
             int dx = x - cx, dy = y - cy;
@@ -27,7 +26,7 @@ void Layer::setPixels(int cx, int cy, int r, Color color) {
 }
 
 
-Document::Document(int w, int h) : width(w), height(h)
+Document::Document(u32 w, u32 h) : width(w), height(h)
 {
 }
 
