@@ -4,14 +4,47 @@
 #include <iostream>
 #include <memory>
 #include <ostream>
-
+#include <windows.h>
+#include <shobjidl.h>
 #include "View.h"
 #include <vector>
 #include "../file/file.h"
 using namespace std;
 // Stores the name of the file you are typing in the UI
 static char export_filename[64] = "my_artwork.ppe";
+
+bool process_start_window(mu_Context* ctx, Document &CurrentFile) {
+
+    if (mu_begin_window(ctx, "Start Window", mu_rect(200, 150, 400, 250))) {
+        int widths[1] = {-1};
+        mu_layout_row(ctx, 1, widths, 0);
+
+        mu_layout_row(ctx, 1, widths, 30);
+        if (mu_button(ctx, "New Project")) {
+            show_start_screen = false;
+        }
+        if (mu_button(ctx, "Open Project")) {
+          //TODO : move to DocHandler? or leave till custom palletes
+            std::string selected_path = open_file_dialog_windows();
+            if (!selected_path.empty()) {
+                u32 loaded_w = 0, loaded_h = 0;
+                std::vector<Color> pixels = ReadFileType(selected_path.c_str(), loaded_w, loaded_h);
+
+                if (pixels.empty()) {
+                    cout << "error, pixels array empty or file missing" << endl;
+                }
+                //TODO : name handling
+                CurrentFile = Document( loaded_w, loaded_h ,"name", pixels);
+                }
+            } else {
+                cout << "Uzytkownik anulowal wybor pliku." << endl;
+            }
+        }
+
+    return false;
+}
 void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& currentTool, UIConfig &uiConfig) {
+
     mu_begin(ctx);
 
     char charvalue[32];

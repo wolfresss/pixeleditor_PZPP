@@ -8,6 +8,12 @@ pixels(w * h, {0, 0, 0, 0}
 {
 }
 
+Layer::Layer(int id, std::string name, u32 w, u32 h, std::vector<Color> p)
+    : Id(id), name(name),
+width(w), height(h),
+pixels(p)
+{
+}
 void Layer::setPixel(u32 x, u32 y, Color color) {
     if (x >= 0 && x < width && y >= 0 && y < height) {
         pixels[y * width + x] = color;
@@ -25,13 +31,41 @@ void Layer::setPixels(u32 cx, u32 cy, u32 r, Color color) {
     }
 }
 
-
-Document::Document(u32 w, u32 h) : width(w), height(h)
-{
+void Layer::setAllPixels(Color color) {
+    for(int x = 0; x < width; ++x) {
+        for(int y = 0; y < height; ++y) {
+            setPixel(x, y, color);
+        }
+    }
 }
 
-void Document::addLayer(std::string name) {
-    layers.emplace_back((int)layers.size(), name, width, height);
+std::vector<Color> setAllPixelsChunk(Color color, u32 w, u32 h) {
+    std::vector<Color> chunk;
+    for (int x = 0; x < w; ++x) {
+        for (int y = 0; y < h; ++y) {
+            chunk.push_back(color);
+        }
+    }
+    return chunk;
+}
+
+Document::Document(u32 w, u32 h, std::string n, Color color) : width(w), height(h),name(n)
+{
+    addLayer(n, color);
+}
+Document::Document(u32 w, u32 h, std::string n, std::vector<Color> pixels) : width(w), height(h),name(n)
+{
+    addLayer(n, w,h, pixels);
+}
+
+void Document::addLayer(std::string name, Color color) {
+
+    layers.emplace_back((int)layers.size(), name, width, height,setAllPixelsChunk(color, width, height) );
+
+}
+void Document::addLayer( std::string name, u32 w, u32 h, std::vector<Color> pixels) {
+    layers.emplace_back((int)layers.size(), name, width, height, pixels );
+
 }
 
 Layer& Document::activeLayer() {

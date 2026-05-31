@@ -19,14 +19,16 @@ add_executable(pixel_editor ${SRC_FILES}
         microui/src/microui.c
         microui/src/microui.h
         src/Renderer/View.cpp
-        src/Tools/IFileManager.cpp
-        src/Tools/IFileManager.h
         src/core/Types.h
         src/Renderer/Config.h
         src/Renderer/UI.cpp
         microui/src/microui.c
         src/file/file.cpp
         src/file/file.h
+        src/Tools/DocHandler.cpp
+        src/Tools/DocHandler.h
+        src/Tools/DocHandler.cpp
+        src/Tools/DocHandler.h
 )
 
 target_link_libraries(pixel_editor PRIVATE SDL3::SDL3)

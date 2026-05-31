@@ -8,6 +8,9 @@
 #include <iostream>
 #include <vector>
 #include <cstdio>
+#include <windows.h>
+#include <shobjidl.h>
+#include <string>
 
 FILE * out;
 u32 PPA_MAGIC_VALUE = 0x505045;
@@ -66,4 +69,53 @@ std::vector<Color> ReadFileType(const char* filename, u32& out_w, u32& out_h) {
     fclose(in);
 
     return loaded_image;
+}
+
+
+std::string open_file_dialog_windows() {
+    std::string file_path = "";
+
+    // Inicjalizacja biblioteki COM (wymagane dla IFileDialog)
+    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    if (SUCCEEDED(hr)) {
+        IFileOpenDialog *pFileOpen;
+
+        // Tworzenie instancji okna dialogowego
+        hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+                              IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+
+        if (SUCCEEDED(hr)) {
+            // Ustawienie filtra plików (np. tylko pliki .ppe)
+            COMDLG_FILTERSPEC fileTypes[] = {
+                { L"Pixel Project Files (*.ppe)", L"*.ppe" },
+                { L"All Files (*.*)", L"*.*" }
+            };
+            pFileOpen->SetFileTypes(ARRAYSIZE(fileTypes), fileTypes);
+
+            // Wyświetlenie okna (kod blokuje się tutaj, dopóki użytkownik nie kliknie OK/Anuluj)
+            hr = pFileOpen->Show(NULL);
+
+            if (SUCCEEDED(hr)) {
+                IShellItem *pItem;
+                hr = pFileOpen->GetResult(&pItem);
+                if (SUCCEEDED(hr)) {
+                    PWSTR pszFilePath;
+                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+                    if (SUCCEEDED(hr)) {
+                        // Konwersja z Wide Char (Windows) na standardowy std::string
+                        int size_needed = WideCharToMultiByte(CP_UTF8, 0, pszFilePath, -1, NULL, 0, NULL, NULL);
+                        file_path.resize(size_needed - 1);
+                        WideCharToMultiByte(CP_UTF8, 0, pszFilePath, -1, &file_path[0], size_needed, NULL, NULL);
+
+                        CoTaskMemFree(pszFilePath);
+                    }
+                    pItem->Release();
+                }
+            }
+            pFileOpen->Release();
+        }
+        CoUninitialize();
+    }
+    return file_path;
 }

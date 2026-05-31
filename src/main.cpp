@@ -7,6 +7,7 @@
 using namespace std;
 UIConfig uiConfig;
 fstream fout;
+Document *CurrentFile;
 int main(int argc, char* argv[]) {
 
     if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -14,16 +15,16 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    const int WIN_W = 800;
-    const int WIN_H = 800;
+    const int WIN_W = 1900;
+    const int WIN_H = 1060;
     int CANVAS_SIZE = 100;
 
     SDL_Window* window = SDL_CreateWindow("Pixel Editor", WIN_W, WIN_H, 0);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
 
     // DOMENA
-    Document doc(CANVAS_SIZE, CANVAS_SIZE);
-    doc.addLayer("Background");
+  //  Document doc(CANVAS_SIZE, CANVAS_SIZE);
+  //  doc.addLayer("Background");
     std::unique_ptr<ITool> currentTool = std::make_unique<Pencil>();
 
     // VIEW / ADAPTERS
