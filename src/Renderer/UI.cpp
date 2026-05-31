@@ -1,9 +1,16 @@
 //
 // Created by izakr on 27/03/2026.
 //
+#include <iostream>
 #include <memory>
+#include <ostream>
 
 #include "View.h"
+#include <vector>
+#include "../file/file.h"
+using namespace std;
+// Stores the name of the file you are typing in the UI
+static char export_filename[64] = "my_artwork.ppe";
 void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& currentTool, UIConfig &uiConfig) {
     mu_begin(ctx);
 
@@ -64,7 +71,6 @@ void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& cur
         if (mu_slider_ex(ctx, &A, 0.0f, 255.0f, 1.0f, charvalue, sizeof(charvalue))) {
             uiConfig.A = static_cast<RGBA255>(A + 0.5f);
         }
-
         mu_layout_row(ctx, 1, widths, 50); // wysokość prostokąta 50px
         mu_draw_rect(ctx, mu_rect(10, 10, 50, 50), mu_color(uiConfig.R, uiConfig.G, uiConfig.B, uiConfig.A));
 
@@ -76,8 +82,67 @@ void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& cur
         mu_end_window(ctx);
     }
 
+    if (mu_begin_window(ctx, "File Manager", mu_rect(10, 470, 160, 150))) {
+    mu_layout_row(ctx, 1, widths, 0);
+    mu_label(ctx, "Filename:");
+
+    // Microui textbox allows you to type out the file name dynamically
+    mu_textbox(ctx, export_filename, sizeof(export_filename));
+
+    mu_layout_row(ctx, 1, widths, 0);
+    if (mu_button(ctx, "Save (.ppe)")) {
+        // Replace with your real functions/vectors when ready
+        WriteFileType(export_filename, doc.height, doc.width, doc.composite());
+    }
+// TODO: dont put logic for reading files in UI, here now for testing
+    if (mu_button(ctx, "Load (.ppe)")) {
+        u32 loaded_w = 0, loaded_h = 0;
+        vector<Color> pixels = ReadFileType(export_filename, loaded_w, loaded_h);
+        if (pixels.empty()) {
+            cout << "error"<< endl;
+        }
+    }
+
+    mu_end_window(ctx);
+}
+    // ==========================================
+    // CLEANED FILE MANAGER
+    // ==========================================
+    if (mu_begin_window(ctx, "File Manager", mu_rect(10, 470, 160, 150))) {
+        mu_layout_row(ctx, 1, widths, 0);
+        mu_label(ctx, "Filename:");
+
+      //no text support yet
+        mu_textbox(ctx, export_filename, sizeof(export_filename));
+
+        mu_layout_row(ctx, 1, widths, 0);
+        if (mu_button(ctx, "Save (.ppe)")) {
+            WriteFileType(export_filename, doc.height, doc.width, doc.composite());
+        }
+
+        if (mu_button(ctx, "Load (.ppe)")) {
+            u32 loaded_w = 0, loaded_h = 0;
+            std::vector<Color> pixels = ReadFileType(export_filename, loaded_w, loaded_h);
+
+            if (pixels.empty()) {
+                cout << "error, pixels array empty or file missing" << endl;
+            } else {
+
+                if (loaded_w == doc.width && loaded_h == doc.height) {
+                    doc.activeLayer().pixels = pixels;
+                    cout << "Success: Loaded file data into active layer!" << endl;
+                } else {
+                    cout << "error: Loaded image size doesn't match canvas size!" << endl;
+                }
+            }
+        }
+
+        mu_end_window(ctx);
+    }
+
     mu_end(ctx);
 }
+
 
 int text_width(mu_Font font, const char *text, int len) {
     if (len == -1) len = (int)strlen(text);

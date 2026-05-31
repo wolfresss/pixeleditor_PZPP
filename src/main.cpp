@@ -9,8 +9,6 @@ UIConfig uiConfig;
 fstream fout;
 int main(int argc, char* argv[]) {
 
-
-
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
@@ -18,7 +16,7 @@ int main(int argc, char* argv[]) {
 
     const int WIN_W = 800;
     const int WIN_H = 800;
-    const int CANVAS_SIZE = 100;
+    int CANVAS_SIZE = 100;
 
     SDL_Window* window = SDL_CreateWindow("Pixel Editor", WIN_W, WIN_H, 0);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
@@ -56,6 +54,18 @@ int main(int argc, char* argv[]) {
                 case SDL_EVENT_MOUSE_BUTTON_UP:
                     mu_input_mouseup(mu_ctx, (int)event.button.x, (int)event.button.y, MU_MOUSE_LEFT);
                     break;
+                case SDL_EVENT_KEY_DOWN:
+                    if (event.key.key == SDLK_BACKSPACE) mu_input_keydown(mu_ctx, MU_KEY_BACKSPACE);
+                    if (event.key.key == SDLK_RETURN)    mu_input_keydown(mu_ctx, MU_KEY_RETURN);
+                    break;
+                case SDL_EVENT_KEY_UP:
+                    if (event.key.key == SDLK_BACKSPACE) mu_input_keyup(mu_ctx, MU_KEY_BACKSPACE);
+                    if (event.key.key == SDLK_RETURN)    mu_input_keyup(mu_ctx, MU_KEY_RETURN);
+                    break;
+                case SDL_EVENT_TEXT_INPUT:
+                    mu_input_text(mu_ctx, event.text.text);
+                    break;
+
             }
         }
 
