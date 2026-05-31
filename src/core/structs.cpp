@@ -1,7 +1,11 @@
 #include "structs.h"
 
 Layer::Layer(int id, std::string name, int w, int h)
-    : Id(id), name(name), width(w), height(h), pixels(w * h, {0, 0, 0, 0})
+    : Id(id), name(name),
+width(w), height(h),
+pixels(w * h, {0, 0, 0, 0}
+    //offset for header file
+)
 {
 }
 

@@ -3,9 +3,14 @@
 #include <iostream>
 #include <string.h>
 #include "Renderer/View.h"
-
+#include <fstream>
+using namespace std;
 UIConfig uiConfig;
+fstream fout;
 int main(int argc, char* argv[]) {
+
+
+
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;

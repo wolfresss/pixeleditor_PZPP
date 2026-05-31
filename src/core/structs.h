@@ -11,15 +11,12 @@ struct Layer {
     bool visible = true;
     int width;
     int height;
+    uint32_t DataOffset;
     std::vector<Color> pixels;
-
 
     Layer(int id, std::string name, int w, int h);
     void setPixel(int x, int y, Color color);
     void setPixels(int cx, int cy, int r, Color color);
-
-
-    // void setPixels_checkerboard(int cx, int cy, Color color, int r);
 };
 
 struct Document {

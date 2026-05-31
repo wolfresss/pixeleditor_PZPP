@@ -6,6 +6,9 @@
 // different names for code organization
 
 typedef uint8_t RGBA255;
+typedef uint32_t u32;
+typedef uint64_t u64;
+
 
 struct Color {
     RGBA255 r, g, b, a;
