@@ -15,5 +15,6 @@ struct UIConfig {
     RGBA255 G = 0;
     RGBA255 B = 0;
     RGBA255 A = 100;
+    std::unique_ptr<ITool> currentTool = std::make_unique<Pencil>();
 };
 

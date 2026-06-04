@@ -1,116 +1,101 @@
 #include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <memory>
 #include <iostream>
 #include <string.h>
 #include "Renderer/View.h"
+#include "Renderer/Renderer.h"
 #include <fstream>
+
 using namespace std;
-UIConfig uiConfig;
-fstream fout;
-Document *CurrentFile;
+
+
+
 int main(int argc, char* argv[]) {
+    Render::InitRenderSDL();
+    Render::InitMicroUI();
 
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
-        return 1;
+
+    // Inside main.cpp loop:
+    while (!Render::quit) {
+        Render::Process_Events(); // Now it quickly clears inputs and returns!
+
+        mu_begin(Render::mu_ctx);
+        // ... UI markup definitions ...
+        mu_end(Render::mu_ctx);
+
+        // This runs EVERY frame, drawing over the black void
+        SDL_SetRenderDrawColor(Render::renderer, 126, 140, 111, 1); // Your custom color background
+        SDL_RenderClear(Render::renderer);
+
+        Render::RenderMicroUI(); // Draws UI widgets over the color background
+
+        SDL_RenderPresent(Render::renderer); // Flips the backbuffer onto the screen!
     }
+    // we don't need document at the start
+   // CurrentFile = new Document(CANVAS_SIZE, CANVAS_SIZE, "Untitled", std::vector<Color>());
+  //  CurrentFile->addLayer("Background", { 1, 1, 1, 1 });
 
-    const int WIN_W = 1900;
-    const int WIN_H = 1060;
-    int CANVAS_SIZE = 100;
 
-    SDL_Window* window = SDL_CreateWindow("Pixel Editor", WIN_W, WIN_H, 0);
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
-
-    // DOMENA
-  //  Document doc(CANVAS_SIZE, CANVAS_SIZE);
-  //  doc.addLayer("Background");
-    std::unique_ptr<ITool> currentTool = std::make_unique<Pencil>();
 
     // VIEW / ADAPTERS
-    CanvasRenderer canvasView(renderer, CANVAS_SIZE, CANVAS_SIZE);
+  //  CanvasRenderer canvasView(renderer, CANVAS_SIZE, CANVAS_SIZE);
 
     // MICROUI SETUP
-    mu_Context* mu_ctx = new mu_Context();
-    mu_init(mu_ctx);
-    mu_ctx->text_width = text_width;
-    mu_ctx->text_height = text_height;
 
-    bool quit = false;
-    SDL_Event event;
 
-    while (!quit) {
-        // Eventy
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-                case SDL_EVENT_QUIT:
-                    quit = true;
-                    break;
-                case SDL_EVENT_MOUSE_MOTION:
-                    mu_input_mousemove(mu_ctx, (int)event.motion.x, (int)event.motion.y);
-                    break;
-                case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                    mu_input_mousedown(mu_ctx, (int)event.button.x, (int)event.button.y, MU_MOUSE_LEFT);
-                    break;
-                case SDL_EVENT_MOUSE_BUTTON_UP:
-                    mu_input_mouseup(mu_ctx, (int)event.button.x, (int)event.button.y, MU_MOUSE_LEFT);
-                    break;
-                case SDL_EVENT_KEY_DOWN:
-                    if (event.key.key == SDLK_BACKSPACE) mu_input_keydown(mu_ctx, MU_KEY_BACKSPACE);
-                    if (event.key.key == SDLK_RETURN)    mu_input_keydown(mu_ctx, MU_KEY_RETURN);
-                    break;
-                case SDL_EVENT_KEY_UP:
-                    if (event.key.key == SDLK_BACKSPACE) mu_input_keyup(mu_ctx, MU_KEY_BACKSPACE);
-                    if (event.key.key == SDLK_RETURN)    mu_input_keyup(mu_ctx, MU_KEY_RETURN);
-                    break;
-                case SDL_EVENT_TEXT_INPUT:
-                    mu_input_text(mu_ctx, event.text.text);
-                    break;
 
-            }
-        }
+// stays in Main !! -----------------
+  /*  int canvasOffsetX = (WIN_W - (int)(CANVAS_SIZE * uiConfig.scale)) / 2;
+    int canvasOffsetY = (WIN_H - (int)(CANVAS_SIZE * uiConfig.scale)) / 2;
 
-        // Przeliczenie offsetów w każdej klatce
-        int canvasOffsetX = (WIN_W - (int)(CANVAS_SIZE * uiConfig.scale)) / 2;
-        int canvasOffsetY = (WIN_H - (int)(CANVAS_SIZE * uiConfig.scale)) / 2;
+    if (!mu_ctx->hover_root && CurrentFile) {
+        float mX, mY;
+        Uint32 buttons = SDL_GetMouseState(&mX, &mY);
 
-        // LOGIKA RYSOWANIA
-        if (!mu_ctx->hover_root) {
-            float mX, mY;
-            Uint32 buttons = SDL_GetMouseState(&mX, &mY);
+        if (buttons & SDL_BUTTON_LMASK) {
+            float localX = (mX - canvasOffsetX) / uiConfig.scale;
+            float localY = (mY - canvasOffsetY) / uiConfig.scale;
 
-            if (buttons & SDL_BUTTON_LMASK) {
-                float localX = (mX - canvasOffsetX) / uiConfig.scale;
-                float localY = (mY - canvasOffsetY) / uiConfig.scale;
+            int canvasX = (int)localX;
+            int canvasY = (int)localY;
 
-                int canvasX = (int)localX;
-                int canvasY = (int)localY;
-
-                if (canvasX >= 0 && canvasX < CANVAS_SIZE &&
-                    canvasY >= 0 && canvasY < CANVAS_SIZE) {
-                    currentTool->execute(doc, canvasX, canvasY, (int)uiConfig.PixelSize, {uiConfig.R, uiConfig.G, uiConfig.B, uiConfig.A});
+            if (canvasX >= 0 && canvasX < CANVAS_SIZE &&
+                canvasY >= 0 && canvasY < CANVAS_SIZE) {
+                uiConfig.currentTool->execute(*CurrentFile, canvasX, canvasY, (int)uiConfig.PixelSize, {uiConfig.R, uiConfig.G, uiConfig.B, uiConfig.A});
                 }
-            }
         }
+    }
+*/
+  //  mu_begin(mu_ctx);
+// - smth smth
+  //  mu_end(mu_ctx);
+//------------------------------------------------------------
 
-        // UI LOGIC
-        process_microui(mu_ctx, doc, currentTool, uiConfig);
+
 
         // RENDER
-        SDL_SetRenderDrawColor(renderer, 35, 35, 38, 255); // tło edytora
-        SDL_RenderClear(renderer);
 
-        canvasView.draw(renderer, doc, canvasOffsetX, canvasOffsetY, uiConfig.scale);
 
-        render_microui(renderer, mu_ctx);
 
-        SDL_RenderPresent(renderer);
-    }
+     /*   if (CurrentFile) {
+            canvasView.draw(renderer, *CurrentFile, canvasOffsetX, canvasOffsetY, uiConfig.scale);
+        }
+*/
 
-    delete mu_ctx;
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+        //RenderMicroUI(renderer, mu_ctx);
+
+       // SDL_RenderPresent(renderer);
+
+
+
+
+
+ //   delete mu_ctx;
+ //   Render::DestroyRenderSDL();
+
+    Render::DestroyRenderSDL();
+    delete Render::mu_ctx;
 
     return 0;
 }

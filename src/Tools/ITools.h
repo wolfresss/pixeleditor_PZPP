@@ -1,6 +1,5 @@
 #pragma once
  #include "../core/structs.h"
-// Forward declaration (opcjonalnie, zamiast include)
 class Document;
 
 //TO DO: pozbyc sie klas wirtualnych potem
