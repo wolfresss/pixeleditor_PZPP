@@ -29,6 +29,8 @@ file(GLOB_RECURSE SRC_FILES src/*.cpp src/*.h src/*.c)
 add_executable(pixel_editor ${SRC_FILES}
         microui/src/microui.c
         microui/src/microui.h
+        src/Renderer/ColorPicker.cpp
+        src/Renderer/ColorPicker.h
 )
 
 target_link_libraries(pixel_editor PRIVATE
