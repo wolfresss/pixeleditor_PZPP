@@ -6,6 +6,7 @@
 #include <shobjidl.h>
 #include <vector>
 #include <windows.h>
+#include "Renderer.h"
 #include "View.h"
 #include "../file/file.h"
 
@@ -150,20 +151,111 @@ void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& cur
     }
 }
 
-TTF_Font* g_font = nullptr;
+void UpdateRGBAPaletteTexture(SDL_Renderer* renderer, SDL_Texture* texture, uint8_t current_blue) {
+    uint32_t pixels[256 * 256];
 
-int text_width(mu_Font font, const char *text, int len) {
-    if (len == -1) len = (int)strlen(text);
-    return len * 10;
-}
+    for (int y = 0; y < 256; y++) {
+        for (int x = 0; x < 256; x++) {
+            uint8_t r = x;               // Red increases left-to-right (0 to 255)
+            uint8_t g = 255 - y;         // Green increases bottom-to-top (0 to 255)
+            uint8_t b = current_blue;    // Blue is locked to whatever the slider is at
+            uint8_t a = 255;             // Fully opaque for the picker background
 
-int text_height(mu_Font font) {
-    return 18;
-}
-
-
-void ProcessMainMenu(mu_Context* ctx) { //TO DO: reactive UI
-    if (mu_begin_window(ctx, "Start Window", mu_rect(200, 150, 400, 250))) {
-
+            // Pack pixels as RGBA8888
+            pixels[y * 256 + x] = (r << 24) | (g << 16) | (b << 8) | a;
+        }
     }
+
+    SDL_UpdateTexture(texture, nullptr, pixels, 256 * sizeof(uint32_t));
 }
+
+
+void ProcessMainMenu(mu_Context* ctx) {
+// Keep these track variables in your UI initialization
+static int rainbow_index = 100; // Default startup point on the rainbow slider
+static uint8_t base_r = 0, base_g = 255, base_b = 0; // The base color chosen from the rainbow
+static bool square_needs_refresh = true;
+
+if (mu_begin_window(ctx, "Advanced Color Selector", mu_rect(0, 0, Render::WIN_W/8, Render::WIN_H))) {
+    int widths[1] = {-1};
+
+    // ==========================================
+    // 1. THE LARGE GRADIENT PICKER BOX
+    // ==========================================
+    mu_layout_row(ctx, 1, widths, 180);
+    mu_Rect square_rect = mu_layout_next(ctx);
+    mu_Id square_id = mu_get_id(ctx, "gradient_box", 12);
+    mu_update_control(ctx, square_id, square_rect, 0);
+
+    // If dragging inside the main color box, calculate what pixel they landed on
+    if (ctx->focus == square_id && (ctx->mouse_down & MU_MOUSE_LEFT)) {
+        float x_pct = (float)(ctx->mouse_pos.x - square_rect.x) / square_rect.w;
+        float y_pct = (float)(ctx->mouse_pos.y - square_rect.y) / square_rect.h;
+
+        if (x_pct < 0.0f) x_pct = 0.0f; if (x_pct > 1.0f) x_pct = 1.0f;
+        if (y_pct < 0.0f) y_pct = 0.0f; if (y_pct > 1.0f) y_pct = 1.0f;
+
+        // Apply the exact 4-corner blend calculation to find the live selected color
+        float r_mix = (1.0f - x_pct) * 255.0f + (x_pct * base_r);
+        float g_mix = (1.0f - x_pct) * 255.0f + (x_pct * base_g);
+        float b_mix = (1.0f - x_pct) * 255.0f + (x_pct * base_b);
+
+        Render::uiConfig.R = static_cast<uint8_t>(r_mix * (1.0f - y_pct));
+        Render::uiConfig.G = static_cast<uint8_t>(g_mix * (1.0f - y_pct));
+        Render::uiConfig.B = static_cast<uint8_t>(b_mix * (1.0f - y_pct));
+    }
+    // Tells your render system to overlay the main square gradient texture here
+    mu_draw_icon(ctx, MU_ICON_MAX, square_rect, mu_color(255, 255, 255, 255));
+
+    mu_layout_row(ctx, 1, widths, 0);
+
+    // ==========================================
+    // 2. THE HORIZONTAL RAINBOW SLIDER
+    // ==========================================
+    mu_label(ctx, "Spectrum:");
+    mu_Real rainbow_val = rainbow_index;
+    if (mu_slider_ex(ctx, &rainbow_val, 0.0f, 359.0f, 1.0f, "", 0)) {
+        rainbow_index = static_cast<int>(rainbow_val);
+
+        // Recompute the base primary color from our rainbow equation
+        float pos = (rainbow_index / 360.0f) * 6.0f;
+        int phase = (int)pos;
+        float fraction = pos - phase;
+        switch (phase) {
+            case 0: base_r = 255; base_g = fraction * 255; base_b = 0; break;
+            case 1: base_r = 255 - (fraction * 255); base_g = 255; base_b = 0; break;
+            case 2: base_r = 0; base_g = 255; base_b = fraction * 255; break;
+            case 3: base_r = 0; base_g = 255 - (fraction * 255); base_b = 255; break;
+            case 4: base_r = fraction * 255; base_g = 0; base_b = 255; break;
+            case 5: base_r = 255; base_g = 0; base_b = 255 - (fraction * 255); break;
+        }
+        square_needs_refresh = true; // Tell backend to update the square color map!
+    }
+    // Tells your rendering loop to overlay the long rainbow texture bar right below
+    mu_Rect rainbow_rect = ctx->last_rect; // Bounding box of the slider we just made
+
+    // ==========================================
+    // 3. THE ALPHA SLIDER
+    // ==========================================
+    mu_label(ctx, "Alpha:");
+    mu_Real alpha_val = Render::uiConfig.A;
+    char alpha_text[16];
+    snprintf(alpha_text, sizeof(alpha_text), "%d", Render::uiConfig.A);
+    if (mu_slider_ex(ctx, &alpha_val, 0.0f, 255.0f, 1.0f, alpha_text, sizeof(alpha_text))) {
+        Render::uiConfig.A = static_cast<uint8_t>(alpha_val + 0.5f);
+    }
+
+    // Refresh our primary box gradient data if the rainbow selection slider moved
+    if (square_needs_refresh) {
+        Render::UpdateGradientSquare( base_r, base_g, base_b);
+        square_needs_refresh = false;
+    }
+
+    mu_end_window(ctx);
+}
+
+
+}
+
+
+

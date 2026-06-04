@@ -3,13 +3,12 @@
 #include <SDL3/SDL.h>
 #include "../core/structs.h"
 #include "../Tools/ITools.h"
-#include "../Renderer/Config.h"
 #include "../file/file.h"
 extern "C" {
 #include "../../microui/src/microui.h"
 }
 //micro UI functions (OLD)
-void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& currentTool, UIConfig &uiConfig);
+void process_microui(mu_Context* ctx);
 int text_width(mu_Font font, const char *text, int len);
 int text_height(mu_Font font);
 void RenderMicroUI(SDL_Renderer* renderer, mu_Context* ctx);
@@ -28,4 +27,4 @@ public:
 //micro UI functions new :
 
 //Mandatory : disable only with shortcut (to be added later)
-void ProcessMainMenu(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& currentTool, UIConfig &uiConfig);
+void ProcessMainMenu(mu_Context* ctx);
