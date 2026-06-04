@@ -7,14 +7,18 @@
 #include <cstdint>
 #include "../core/Types.h"
 
-
 typedef uint32_t u32;
 typedef uint8_t RGBA255;
+
 struct HSV {
-    uint16_t h; // Hue: 0 to 360 (fits perfectly in 16 bits)
-    uint8_t  s; // Saturation: 0 to 255 (mapped from 0.0 - 1.0)
-    uint8_t  v; // Value: 0 to 255 (mapped from 0.0 - 1.0)
+    uint16_t h; // Hue: 0 to 360
+    uint8_t  s; // Saturation: 0 to 255
+    uint8_t  v; // Value: 0 to 255
 };
 
+extern HSV currentHSV;
+void UpdatePalette(Color (&Palette)[256][256]);
+
+Color HSVToRGB(uint8_t pixel_x, uint8_t pixel_y);
 
 #endif //PIXELEDITOR_COLORPICKER_H

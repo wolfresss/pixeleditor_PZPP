@@ -8,6 +8,7 @@
 #include "SDL3/SDL_video.h"
 #include "SDL3_ttf/SDL_ttf.h"
 #include "View.h"
+#include "ColorPicker.h"
 
 struct mu_Context;
 struct UIConfig {
@@ -31,7 +32,6 @@ namespace Render {
     inline constexpr int WIN_W = 1900;
     inline constexpr int WIN_H = 1060;
 
-
     // GLOBAL VARIABLES
     extern int CANVAS_SIZE;
     extern TTF_Font* g_font;
@@ -53,7 +53,9 @@ namespace Render {
 
     //Optional
     //Canvas Renderer (after file has been initialized)
-    void UpdateGradientSquare(int8_t base_r, uint8_t base_g, uint8_t base_b);
+
+    //Features
+    void UpdateGradientSquare() ;
 }
 
 #endif //PIXELEDITOR_RENDERER_H

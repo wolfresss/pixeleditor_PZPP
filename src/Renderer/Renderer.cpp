@@ -75,67 +75,22 @@ namespace Render {
     }
 
     SDL_Texture* CreatePaletteTexture(SDL_Renderer* renderer) {
-        // Create a 256x256 streaming or static texture with RGBA32 format
-        SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, 256, 256);
+        // TO DO: steaming for modification
+        SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, 256, 256);
         if (!texture) {
             SDL_Log("Failed to create palette texture: %s", SDL_GetError());
         }
         return texture;
     }
-    void UpdateGradientSquare(int8_t base_r, uint8_t base_g, uint8_t base_b) {
+
+    void UpdateGradientSquare() {
         if (!paletteTexture) return;
 
-        uint32_t pixels[256 * 256];
+        Color Palette[256][256];
 
-        for (int y = 0; y < 256; y++) {
+        UpdatePalette(Palette);
 
-            float row_darkness = (float)y / 255.0f;
-
-            for (int x = 0; x < 256; x++) {
-                // Calculate how close we are to the right side (0.0 = white side, 1.0 = color side)
-                float col_saturation = (float)x / 255.0f;
-
-                // Blend horizontally between pure white (left) and our base color (right)
-                float r_mix = (1.0f - col_saturation) * 255.0f + (col_saturation * base_r);
-                float g_mix = (1.0f - col_saturation) * 255.0f + (col_saturation * base_g);
-                float b_mix = (1.0f - col_saturation) * 255.0f + (col_saturation * base_b);
-
-                // Blend vertically down towards pure black at the bottom edge
-                uint8_t final_r = static_cast<uint8_t>(r_mix * (1.0f - row_darkness));
-                uint8_t final_g = static_cast<uint8_t>(g_mix * (1.0f - row_darkness));
-                uint8_t final_b = static_cast<uint8_t>(b_mix * (1.0f - row_darkness));
-
-                // Pack into our 32-bit pixel buffer
-                pixels[y * 256 + x] = (final_r << 24) | (final_g << 16) | (final_b << 8) | 255;
-            }
-        }
-
-        SDL_UpdateTexture(paletteTexture, nullptr, pixels, 256 * sizeof(uint32_t));
-    }
-
-    SDL_Texture* CreateRainbowSliderTexture(SDL_Renderer* renderer) {
-        SDL_Texture* tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, 360, 1);
-        uint32_t pixels[360];
-
-        for (int x = 0; x < 360; x++) {
-            // Simple RGB rainbow strip interpolation math
-            float pos = (x / 360.0f) * 6.0f;
-            int phase = (int)pos;
-            float fraction = pos - phase;
-            uint8_t r = 0, g = 0, b = 0;
-
-            switch (phase) {
-                case 0: r = 255; g = fraction * 255; b = 0; break;
-                case 1: r = 255 - (fraction * 255); g = 255; b = 0; break;
-                case 2: r = 0; g = 255; b = fraction * 255; break;
-                case 3: r = 0; g = 255 - (fraction * 255); b = 255; break;
-                case 4: r = fraction * 255; g = 0; b = 255; break;
-                case 5: r = 255; g = 0; b = 255 - (fraction * 255); break;
-            }
-            pixels[x] = (r << 24) | (g << 16) | (b << 8) | 255;
-        }
-        SDL_UpdateTexture(tex, nullptr, pixels, 360 * sizeof(uint32_t));
-        return tex;
+        SDL_UpdateTexture(paletteTexture, nullptr, Palette, 256 * sizeof(uint32_t));
     }
 
     int text_width(mu_Font font, const char *text, int len) {
@@ -188,6 +143,7 @@ namespace Render {
         mu_ctx = new mu_Context();
         mu_init(mu_ctx);
         paletteTexture = CreatePaletteTexture(renderer);
+        UpdateGradientSquare();
         mu_ctx->text_width = text_width;
         mu_ctx->text_height = text_height;
         mu_ctx->style->colors[MU_COLOR_WINDOWBG] = mu_color(30, 30, 35, 255);
