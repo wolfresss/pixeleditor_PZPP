@@ -4,7 +4,6 @@
 
 #include "ColorPicker.h"
 #include <cmath>
-
 HSV currentHSV{0, 255, 255};
 
 
@@ -45,3 +44,29 @@ void UpdatePalette(Color (&Palette)[256][256]) {
         }
     }
 }
+
+mu_Color HSVTo_mu_Color(uint8_t pixel_x, uint8_t pixel_y) {
+    // x_pct i y_pct to wartości od 0.0 do 1.0 wyciągnięte z pozycji piksela na kwadracie
+    double s = pixel_x / 255.0;
+    double v = (255 - pixel_y) / 255.0;
+
+    double c = v * s;
+    double x = c * (1.0 - POS());
+    double m = v - c;
+
+    double r_ = 0, g_ = 0, b_ = 0;
+    if (currentHSV.h < 60)        { r_ = c; g_ = x; b_ = 0; }
+    else if (currentHSV.h < 120)  { r_ = x; g_ = c; b_ = 0; }
+    else if (currentHSV.h < 180)  { r_ = 0; g_ = c; b_ = x; }
+    else if (currentHSV.h < 240)  { r_ = 0; g_ = x; b_ = c; }
+    else if (currentHSV.h < 300)  { r_ = x; g_ = 0; b_ = c; }
+    else if (currentHSV.h <= 360) { r_ = c; g_ = 0; b_ = x; }
+
+    return mu_Color{
+        static_cast<uint8_t>((r_ + m) * 255.0),
+        static_cast<uint8_t>((g_ + m) * 255.0),
+        static_cast<uint8_t>((b_ + m) * 255.0),
+        255 // Alfa
+    };
+}
+
