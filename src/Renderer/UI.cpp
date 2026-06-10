@@ -84,35 +84,6 @@ void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& cur
         }
 
         mu_layout_row(ctx, 1, widths, 0);
-        mu_label(ctx, "R:");
-        mu_Real R = uiConfig.R;
-        if (mu_slider_ex(ctx, &R, 0.0f, 255.0f, 1.0f, charvalue, sizeof(charvalue))) {
-            uiConfig.R = static_cast<RGBA255>(R + 0.5f);
-        }
-
-        mu_layout_row(ctx, 1, widths, 0);
-        mu_label(ctx, "G:");
-        mu_Real G = uiConfig.G;
-        if (mu_slider_ex(ctx, &G, 0.0f, 255.0f, 1.0f, charvalue, sizeof(charvalue))) {
-            uiConfig.G = static_cast<RGBA255>(G + 0.5f);
-        }
-
-        mu_layout_row(ctx, 1, widths, 0);
-        mu_label(ctx, "B:");
-        mu_Real B = uiConfig.B;
-        if (mu_slider_ex(ctx, &B, 0.0f, 255.0f, 1.0f, charvalue, sizeof(charvalue))) {
-            uiConfig.B = static_cast<RGBA255>(B + 0.5f);
-        }
-
-        mu_layout_row(ctx, 1, widths, 0);
-        mu_label(ctx, "A:");
-        mu_Real A = uiConfig.A;
-        if (mu_slider_ex(ctx, &A, 0.0f, 255.0f, 1.0f, charvalue, sizeof(charvalue))) {
-            uiConfig.A = static_cast<RGBA255>(A + 0.5f);
-        }
-
-        mu_layout_row(ctx, 1, widths, 50);
-        mu_draw_rect(ctx, mu_rect(10, 10, 50, 50), mu_color(uiConfig.R, uiConfig.G, uiConfig.B, uiConfig.A));
 
         mu_label(ctx, "Layers:");
         for (size_t i = 0; i < doc.layers.size(); i++) {
@@ -168,45 +139,6 @@ void UpdateRGBAPaletteTexture(SDL_Renderer* renderer, SDL_Texture* texture, uint
     }
 
     SDL_UpdateTexture(texture, nullptr, pixels, 256 * sizeof(uint32_t));
-}
-
-void ProcessMainMenu(mu_Context* ctx) {
-    if (mu_begin_window(ctx, "Advanced Color Selector", mu_rect(0, 0, Render::WIN_W/8, Render::WIN_H))) {
-        int widths[1] = {-1};
-        mu_layout_row(ctx, 1, widths, 180);
-        mu_Rect square_rect = mu_layout_next(ctx);
-        mu_Rect square_rect2 = mu_layout_next(ctx);
-        mu_Id square_id = mu_get_id(ctx, "gradient_box", 12);
-        mu_update_control(ctx, square_id, square_rect, 0);
-
-        if (ctx->focus == square_id && (ctx->mouse_down & MU_MOUSE_LEFT)) {
-            float x_pct = (float)(ctx->mouse_pos.x - square_rect.x) / square_rect.w;
-            float y_pct = (float)(ctx->mouse_pos.y - square_rect.y) / square_rect.h;
-
-            if (x_pct < 0.0f) x_pct = 0.0f; if (x_pct > 1.0f) x_pct = 1.0f;
-            if (y_pct < 0.0f) y_pct = 0.0f; if (y_pct > 1.0f) y_pct = 1.0f;
-
-            currentHSV.s = static_cast<uint8_t>(x_pct * 255.0f);
-            currentHSV.v = static_cast<uint8_t>((1.0f - y_pct) * 255.0f);
-
-           // Render::UpdateGradientSquare(); thats actually only for hue
-        }
-        //mu_end_window(ctx);
-        mu_Color color =  HSVTo_mu_Color(currentHSV.s, 1 - currentHSV.v);
-        mu_draw_rect(ctx,square_rect2, color);
-        mu_draw_icon(ctx, MU_ICON_MAX, square_rect, mu_color(255, 255, 255, 255));
-
-        char charvalue[32]; //buffer for text
-        mu_layout_row(ctx, 1, widths , 0);
-        mu_label(ctx, "HUE:");
-        mu_Real Hue = currentHSV.h;
-            if (mu_slider_ex(ctx, &Hue, 0.0f, 255.0f, 1.0f, charvalue, sizeof(charvalue))) {
-                currentHSV.h = static_cast<uint16_t>(Hue);
-                Render::UpdateGradientSquare();
-            }
-        mu_end_window(ctx);
-    }
-
 }
 
 

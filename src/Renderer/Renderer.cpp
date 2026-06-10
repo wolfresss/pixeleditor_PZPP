@@ -9,74 +9,11 @@
 #include <string.h>
 
 namespace Render {
+    WindowContext window;
 
-    int CANVAS_SIZE = 100;
-    TTF_Font* g_font = nullptr;
-    SDL_Window* window = nullptr;
-    SDL_Renderer* renderer = nullptr;
-    SDL_Event event;
-    bool quit = false;
-    UIConfig uiConfig = {};
-    mu_Context* mu_ctx = nullptr;
-    Document* CurrentFile = nullptr;
-    SDL_Texture* paletteTexture = nullptr;
-    void InitRenderSDL() {
-        if (!SDL_Init(SDL_INIT_VIDEO)) {
-            std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
-            quit = true;
-            return;
-        }
-
-        if (!TTF_Init()) {
-            std::cerr << "TTF_Init Error: " << SDL_GetError() << std::endl;
-            SDL_Quit();
-            quit = true;
-            return;
-        }
-
-        window = SDL_CreateWindow("Pixel Editor", WIN_W, WIN_H, 0);
-        if (!window) {
-            std::cerr << "Window Error: " << SDL_GetError() << std::endl;
-            quit = true;
-            return;
-        }
-        renderer = SDL_CreateRenderer(window, nullptr);
-        if (!renderer) {
-            std::cerr << "Renderer Error: " << SDL_GetError() << std::endl;
-            quit = true;
-            return;
-        }
-
-        g_font = TTF_OpenFont("Pix32.ttf", 16);
-        if (!g_font) {
-            std::cerr << "TTF_OpenFont Warning: " << SDL_GetError() << " (Using layout fallbacks)" << std::endl;
-        }
-    }
-
-    void DestroyRenderSDL() {
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-
-        if (mu_ctx) {
-            delete mu_ctx;
-            mu_ctx = nullptr;
-        }
-
-        if (g_font) {
-            TTF_CloseFont(g_font);
-        }
-        TTF_Quit();
-
-        if (CurrentFile) {
-            delete CurrentFile;
-            CurrentFile = nullptr;
-        }
-        SDL_Quit();
-    }
-
-    SDL_Texture* CreatePaletteTexture(SDL_Renderer* renderer) {
+    SDL_Texture* CreatePaletteTexture() {
         // TO DO: steaming for modification
-        SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, 256, 256);
+        SDL_Texture* texture = SDL_CreateTexture(window.renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, 256, 256);
         if (!texture) {
             SDL_Log("Failed to create palette texture: %s", SDL_GetError());
         }
@@ -84,13 +21,13 @@ namespace Render {
     }
 
     void UpdateGradientSquare() {
-        if (!paletteTexture) return;
+        if (!window.paletteTexture) return;
 
         Color Palette[256][256];
 
         UpdatePalette(Palette);
 
-        SDL_UpdateTexture(paletteTexture, nullptr, Palette, 256 * sizeof(uint32_t));
+        SDL_UpdateTexture(window.paletteTexture, nullptr, Palette, 256 * sizeof(uint32_t));
     }
 
     int text_width(mu_Font font, const char *text, int len) {
@@ -104,55 +41,71 @@ namespace Render {
     }
 
     void Process_Events() {
-
-        if (!mu_ctx) {
+        if (!window.mu_ctx) {
             std::cout << "[CRITICAL] Process_Events widzi mu_ctx jako NULL!" << std::endl;
             return;
         }
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
+        while (SDL_PollEvent(&window.event)) {
+            switch (window.event.type) {
                 case SDL_EVENT_QUIT:
-                    quit = true;
+                    window.shouldQuit = true;
                     break;
                 case SDL_EVENT_MOUSE_MOTION:
-                    mu_input_mousemove(mu_ctx, (int)event.motion.x, (int)event.motion.y);
+                    mu_input_mousemove(window.mu_ctx, (int)window.event.motion.x, (int)window.event.motion.y);
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                    mu_input_mousedown(mu_ctx, (int)event.button.x, (int)event.button.y, MU_MOUSE_LEFT);
+                    // Zmapowane na lewy przycisk myszy
+                    mu_input_mousedown(window.mu_ctx, (int)window.event.button.x, (int)window.event.button.y, MU_MOUSE_LEFT);
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_UP:
-                    mu_input_mouseup(mu_ctx, (int)event.button.x, (int)event.button.y, MU_MOUSE_LEFT);
+                    mu_input_mouseup(window.mu_ctx, (int)window.event.button.x, (int)window.event.button.y, MU_MOUSE_LEFT);
                     break;
                 case SDL_EVENT_KEY_DOWN:
-                    if (event.key.key == SDLK_BACKSPACE) mu_input_keydown(mu_ctx, MU_KEY_BACKSPACE);
-                    if (event.key.key == SDLK_RETURN)    mu_input_keydown(mu_ctx, MU_KEY_RETURN);
+                    if (window.event.key.key == SDLK_BACKSPACE) {
+                        mu_input_keydown(window.mu_ctx, MU_KEY_BACKSPACE);
+                    } else if (window.event.key.key == SDLK_RETURN || window.event.key.key == SDLK_KP_ENTER) {
+                        mu_input_keydown(window.mu_ctx, MU_KEY_RETURN);
+                    }
                     break;
                 case SDL_EVENT_KEY_UP:
-                    if (event.key.key == SDLK_BACKSPACE) mu_input_keyup(mu_ctx, MU_KEY_BACKSPACE);
-                    if (event.key.key == SDLK_RETURN)    mu_input_keyup(mu_ctx, MU_KEY_RETURN);
+                    if (window.event.key.key == SDLK_BACKSPACE) {
+                        mu_input_keyup(window.mu_ctx, MU_KEY_BACKSPACE);
+                    } else if (window.event.key.key == SDLK_RETURN || window.event.key.key == SDLK_KP_ENTER) {
+                        mu_input_keyup(window.mu_ctx, MU_KEY_RETURN);
+                    }
                     break;
                 case SDL_EVENT_TEXT_INPUT:
-                    mu_input_text(mu_ctx, event.text.text);
+                    // W SDL3 event.text.text to wskaźnik na string UTF-8
+                    if (window.event.text.text && window.event.text.text[0] != '\0') {
+                        mu_input_text(window.mu_ctx, window.event.text.text);
+                    }
                     break;
             }
         }
     }
-
-    void InitMicroUI() {
-        std::unique_ptr<ITool> currentTool = std::make_unique<Pencil>();
-        mu_ctx = new mu_Context();
-        mu_init(mu_ctx);
-        paletteTexture = CreatePaletteTexture(renderer);
+    void Init() {
+        window = {};
+        window.window = SDL_CreateWindow("Pixel Editor", WIN_W, WIN_H, SDL_WINDOW_MAXIMIZED );
+        window.renderer = SDL_CreateRenderer(window.window, NULL);
+        window.mu_ctx = new mu_Context();
+        mu_init(window.mu_ctx);
+        window.paletteTexture = CreatePaletteTexture();
+        window.font = TTF_OpenFont("Pix32.ttf", 12);
+        if (window.font == NULL) {
+            std::cout<< SDL_GetError() << std::endl;
+        }
+        if (window.font == NULL) SDL_GetError();
         UpdateGradientSquare();
-        mu_ctx->text_width = text_width;
-        mu_ctx->text_height = text_height;
-        mu_ctx->style->colors[MU_COLOR_WINDOWBG] = mu_color(30, 30, 35, 255);
+        window.mu_ctx->text_width = text_width;
+        window.mu_ctx->text_height = text_height;
+        window.mu_ctx->style->colors[MU_COLOR_WINDOWBG] = mu_color(30, 30, 35, 255);
+        SDL_StartTextInput(window.window);
     }
 
    void RenderMicroUI() {
     mu_Command* local_cmd = nullptr;
 
-    while (mu_next_command(mu_ctx, &local_cmd)) {
+    while (mu_next_command(window.mu_ctx, &local_cmd)) {
         switch (local_cmd->type) {
             case MU_COMMAND_RECT: {
                 SDL_FRect rect = {
@@ -161,12 +114,12 @@ namespace Render {
                     (float)local_cmd->rect.rect.w,
                     (float)local_cmd->rect.rect.h
                 };
-                SDL_SetRenderDrawColor(renderer, local_cmd->rect.color.r, local_cmd->rect.color.g, local_cmd->rect.color.b, local_cmd->rect.color.a);
-                SDL_RenderFillRect(renderer, &rect);
+                SDL_SetRenderDrawColor(window.renderer, local_cmd->rect.color.r, local_cmd->rect.color.g, local_cmd->rect.color.b, local_cmd->rect.color.a);
+                SDL_RenderFillRect(window.renderer, &rect);
                 break;
             }
             case MU_COMMAND_TEXT: {
-                if (g_font) {
+                if (window.font) {
                     SDL_Color color = {
                         local_cmd->text.color.r,
                         local_cmd->text.color.g,
@@ -174,10 +127,10 @@ namespace Render {
                         local_cmd->text.color.a
                     };
 
-                    SDL_Surface* surface = TTF_RenderText_Blended_Wrapped(g_font, local_cmd->text.str, 0, color, 0);
+                    SDL_Surface* surface = TTF_RenderText_Blended_Wrapped(window.font, local_cmd->text.str, 0, color, 0);
 
                     if (surface) {
-                        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+                        SDL_Texture* texture = SDL_CreateTextureFromSurface(window.renderer, surface);
 
                         if (texture) {
                             float w, h;
@@ -189,7 +142,7 @@ namespace Render {
                                 w,
                                 h
                             };
-                            SDL_RenderTexture(renderer, texture, nullptr, &dst_rect);
+                            SDL_RenderTexture(window.renderer, texture, nullptr, &dst_rect);
                             SDL_DestroyTexture(texture);
                         }
                         SDL_DestroySurface(surface);
@@ -204,7 +157,7 @@ namespace Render {
                     local_cmd->clip.rect.w,
                     local_cmd->clip.rect.h
                 };
-                SDL_SetRenderClipRect(renderer, &clip);
+                SDL_SetRenderClipRect(window.renderer, &clip);
                 break;
             }
             case MU_COMMAND_ICON: {
@@ -216,13 +169,12 @@ namespace Render {
                         static_cast<float>(local_cmd->icon.rect.h)
                     };
 
-                    // Draw the 4-corner blended layout box
-                    SDL_RenderTexture(renderer, Render::paletteTexture, nullptr, &dstRect);
+                    SDL_RenderTexture(window.renderer, window.paletteTexture, nullptr, &dstRect);
                 }
                 break;
             }
         }
     }
-    SDL_SetRenderClipRect(renderer, nullptr);
+    SDL_SetRenderClipRect(window.renderer, nullptr);
 }
 }

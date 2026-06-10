@@ -4,35 +4,34 @@
 #include <iostream>
 #include <string.h>
 #include "Renderer/View.h"
-#include "Renderer/Renderer.h"
+#include "Renderer/renderer.h"
 #include <fstream>
+
+#include "Renderer/Renderer.h"
+
 
 using namespace std;
 
 int main(int argc, char* argv[]) {
-    Render::InitRenderSDL();
-    Render::InitMicroUI();
-
-    while (!Render::quit) {
+    SDL_Init(SDL_INIT_VIDEO);
+    TTF_Init();
+    Render::Init();
+    while (!Render::window.shouldQuit) {
 
         Render::Process_Events();
+        SDL_SetRenderDrawColor(Render::window.renderer, 126, 140, 111, 255);
+        SDL_RenderClear(Render::window.renderer);
 
-
-        SDL_SetRenderDrawColor(Render::renderer, 126, 140, 111, 255);
-        SDL_RenderClear(Render::renderer);
-
-      mu_begin(Render::mu_ctx);
-      ProcessMainMenu(Render::mu_ctx);
-      mu_end(Render::mu_ctx);
+      mu_begin(Render::window.mu_ctx);
+      ProcessMainMenu(Render::window.mu_ctx);
+        ProcessLeftBar(Render::window.mu_ctx);
+      mu_end(Render::window.mu_ctx);
 
       Render::RenderMicroUI();
-      //  SDL_SetRenderClipRect(Render::renderer, nullptr);
-        SDL_RenderPresent(Render::renderer);
+      //  SDL_SetRenderClipRect(Render::window.window.renderer, nullptr);
+        SDL_RenderPresent(Render::window.renderer);
 
     }
-
-
-    Render::DestroyRenderSDL();
 
     return 0;
 }

@@ -19,43 +19,36 @@ struct UIConfig {
     int layoutWidths[1] = {-1};          // dla mu_layout_row
     bool showGrid = true; //TO DO: implementacja prostego grida
     bool snapToPixel = false; //TO DO: funkcjonalność algorytmy dokumentacja
-    RGBA255 R = 0;
-    RGBA255 G = 0;
-    RGBA255 B = 0;
-    RGBA255 A = 100;
     std::unique_ptr<ITool> currentTool;
 };
 
+struct WindowContext {
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+    TTF_Font* font;
+    bool shouldQuit = false;
+    SDL_Event event;
+    mu_Context* mu_ctx;
+    Document* CurrentFile;
+    SDL_Texture* paletteTexture;
+};
+
 namespace Render {
-
    // CONSTANTS
-    inline constexpr int WIN_W = 1900;
-    inline constexpr int WIN_H = 1060;
-
+    inline constexpr int WIN_W = 1500;
+    inline constexpr int WIN_H = 600;
     // GLOBAL VARIABLES
     extern int CANVAS_SIZE;
-    extern TTF_Font* g_font;
-    extern SDL_Window* window;
-    extern SDL_Renderer* renderer;
-    extern SDL_Event event;
-    extern bool quit;
-    extern mu_Context* mu_ctx;
+   extern WindowContext window;
     extern UIConfig uiConfig;
-    extern Document* CurrentFile;
-    extern SDL_Texture* paletteTexture;
-
     //  MANDATORY INITIALIZERS
-    void InitRenderSDL();
-    void DestroyRenderSDL();
-    void InitMicroUI();
+    void Init();
     void RenderMicroUI();
     void Process_Events();
 
-    //Optional
-    //Canvas Renderer (after file has been initialized)
-
     //Features
     void UpdateGradientSquare() ;
+
 }
 
 #endif //PIXELEDITOR_RENDERER_H
