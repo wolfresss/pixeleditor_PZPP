@@ -7,6 +7,7 @@
 #include <ostream>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <string.h>
+#include "../Resources/binary_icons.h"
 
 namespace Render {
     WindowContext window;
@@ -40,6 +41,23 @@ namespace Render {
         return 16;
     }
 
+
+    void InitAppIcons(SDL_Renderer* renderer) {
+        my_ui_icons[0].icon_id = ICON_PBM_PENCIL;
+        my_ui_icons[0].texture = LoadIconFrom64BitArray(renderer, pencil_icon_bits, 50, 50);
+
+        my_ui_icons[1].icon_id = ICON_PBM_RUBBER;
+        my_ui_icons[1].texture = LoadIconFrom64BitArray(renderer, rubber_icon_bits, 50, 50);
+    }
+
+    void FreeAppIcons() {
+        for (int i = 0; i < MY_ICONS_SIZE; i++) {
+            if (my_ui_icons[i].texture) {
+                SDL_DestroyTexture(my_ui_icons[i].texture);
+                my_ui_icons[i].texture = NULL;
+            }
+        }
+    }
     void Process_Events() {
         if (!window.mu_ctx) {
             std::cout << "[CRITICAL] Process_Events widzi mu_ctx jako NULL!" << std::endl;
