@@ -26,21 +26,16 @@ int main(int argc, char* argv[]) {
     }
 
     Render::Init();
-
-
     while (!Render::window.shouldQuit) {
 
-
         Render::Process_Events();
-
 
         mu_begin(Render::window.mu_ctx);
         ProcessMainMenu(Render::window.mu_ctx);
         ProcessLeftBar(Render::window.mu_ctx);
         mu_end(Render::window.mu_ctx);
 
-
-        SDL_SetRenderDrawColor(Render::window.renderer, 126, 140, 111, 255);
+        SDL_SetRenderDrawColor(Render::window.renderer, 95, 100, 105, 255);
         SDL_RenderClear(Render::window.renderer);
 
 

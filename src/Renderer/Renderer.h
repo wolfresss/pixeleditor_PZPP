@@ -20,6 +20,11 @@ struct HSV {
 };
 
 
+enum ToolType {
+    PENCIL,
+    FLOODFILL,
+    RUBBER
+};
 
 struct mu_Context;
 struct UIConfig {
@@ -29,7 +34,6 @@ struct UIConfig {
     int layoutWidths[1] = {-1};          // dla mu_layout_row
     bool showGrid = true; //TO DO: implementacja prostego grida
     bool snapToPixel = false; //TO DO: funkcjonalność algorytmy dokumentacja
-    std::unique_ptr<ITool> currentTool;
 };
 
 struct WindowContext {
@@ -66,7 +70,7 @@ namespace Render {
     mu_Color HSVTo_mu_Color(uint8_t pixel_x, uint8_t pixel_y);
     SDL_Texture* CreatePaletteTexture();
     extern HSV currentHSV;
-    extern RGBA255 currentColor;
+    extern Color currentColor;
 
     // Funkcje pomocnicze microui do tekstu
     int text_width(mu_Font font, const char *text, int len);

@@ -15,7 +15,45 @@ namespace Render {
     WindowContext window;
     UIConfig uiConfig;
     HSV currentHSV{0, 255, 255};
+    Color currentColor;
 
+
+
+
+    bool IsOnCanvas() {
+
+    }
+    void executePencil(Document& doc, int x, int y, int PixelSize, Color drawColor) {
+        auto& layer = doc.activeLayer();
+        if (x >= 0 && x < layer.width && y >= 0 && y < layer.height) {
+            layer.setPixels(x, y, PixelSize,drawColor);
+        }
+    }
+    void executeRubber(Document& doc, int x, int y, int PixelSize) {
+        auto& layer = doc.activeLayer();
+
+        if (x >= 0 && x < layer.width && y >= 0 && y < layer.height) {
+            // Gumka ustawia kolor na w pełni przezroczysty
+            // TO DO: Kontrola przezroczystości gumki
+            Color drawColor = {0, 0, 0, 0};
+            layer.setPixels(x, y,PixelSize, drawColor);
+
+        }
+    }
+
+    void ProcessTool(ToolType selectedTool, int x, int y, Document& doc)
+    {
+        switch (selectedTool) {
+            case PENCIL:
+                executePencil( doc, x, y,1, currentColor );
+                break;
+            case RUBBER:
+                executeRubber( doc, x, y, 1);
+                break;
+            case FLOODFILL:
+                break;
+        }
+    }
     SDL_Texture* CreatePaletteTexture() {
         // TO DO: steaming for modification
         SDL_Texture* texture = SDL_CreateTexture(window.renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, 256, 256);
@@ -76,7 +114,10 @@ namespace Render {
                     mu_input_mousemove(window.mu_ctx, (int)window.event.motion.x, (int)window.event.motion.y);
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                    // Zmapowane na lewy przycisk myszy
+
+                    if (IsOnCanvas) {
+                         ProcessTool(selectedTool, (int)window.event.button.x, (int)window.event.button.y, Document& doc)
+                    }
                     mu_input_mousedown(window.mu_ctx, (int)window.event.button.x, (int)window.event.button.y, MU_MOUSE_LEFT);
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_UP:
