@@ -10,7 +10,8 @@
 #include "../Resources/binary_icons.h"
 
 namespace Render {
-    WindowContext window;
+   WindowContext window;
+    UIConfig uiConfig;
 
     SDL_Texture* CreatePaletteTexture() {
         // TO DO: steaming for modification
@@ -98,11 +99,25 @@ namespace Render {
                         mu_input_text(window.mu_ctx, window.event.text.text);
                     }
                     break;
+                case SDL_EVENT_MOUSE_WHEEL:
+                    // window.event.wheel.y zwraca > 0 gdy kręcisz w górę, < 0 gdy w dół
+                    if (window.event.wheel.y > 0.0f) {
+                        uiConfig.scale *= 1.2f; // Przybliżenie o 20%
+                    } else if (window.event.wheel.y < 0.0f) {
+                        uiConfig.scale /= 1.2f; // Oddalenie o 20%
+                    }
+
+                    // Zabezpieczenie: limity min/max zoomu (np. od 0.5x do 32x)
+                    if (uiConfig.scale < 0.5f)  uiConfig.scale = 0.5f;
+                    if (uiConfig.scale > 32.0f) uiConfig.scale = 32.0f;
+                    break;
+
             }
         }
     }
     void Init() {
         window = {};
+        uiConfig = {};
         window.window = SDL_CreateWindow("Pixel Editor", WIN_W, WIN_H, SDL_WINDOW_MAXIMIZED );
         window.renderer = SDL_CreateRenderer(window.window, NULL);
         window.mu_ctx = new mu_Context();

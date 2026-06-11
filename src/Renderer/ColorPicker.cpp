@@ -4,6 +4,7 @@
 
 #include "ColorPicker.h"
 #include <cmath>
+#include "SDL3/SDL_render.h"
 HSV currentHSV{0, 255, 255};
 
 

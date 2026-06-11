@@ -20,13 +20,13 @@ CanvasRenderer::CanvasRenderer(SDL_Renderer* renderer, int w, int h)
 void CanvasRenderer::draw(SDL_Renderer* renderer, Document& doc, int OffsetX, int OffsetY, float scale) {
     const auto& compositeData = doc.composite();
 
-    SDL_UpdateTexture(canvasTexture, nullptr, compositeData.data(), width * sizeof(uint32_t));
 
+    SDL_UpdateTexture(canvasTexture, nullptr, compositeData.data(), doc.width * sizeof(uint32_t));
     SDL_FRect dst = {
         (float)OffsetX,
         (float)OffsetY,
-        width * scale,
-        height * scale
+        doc.width * scale,
+        doc.height * scale
     };
 
     SDL_RenderTexture(renderer, canvasTexture, nullptr, &dst);
