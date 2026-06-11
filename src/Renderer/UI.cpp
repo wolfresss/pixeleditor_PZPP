@@ -2,12 +2,8 @@
 #include <iostream>
 #include <memory>
 #include <ostream>
-#include <SDL3_ttf/SDL_ttf.h>
-#include <shobjidl.h>
 #include <vector>
-#include <windows.h>
 #include "Renderer.h"
-#include "ColorPicker.h"
 #include "View.h"
 #include "../file/file.h"
 

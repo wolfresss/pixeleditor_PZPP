@@ -3,6 +3,8 @@
 //
 
 #include "Renderer.h"
+
+#include <cmath>
 #include <iostream>
 #include <ostream>
 #include <SDL3_ttf/SDL_ttf.h>
@@ -10,8 +12,9 @@
 #include "../Resources/binary_icons.h"
 
 namespace Render {
-   WindowContext window;
+    WindowContext window;
     UIConfig uiConfig;
+    HSV currentHSV{0, 255, 255};
 
     SDL_Texture* CreatePaletteTexture() {
         // TO DO: steaming for modification
@@ -94,20 +97,18 @@ namespace Render {
                     }
                     break;
                 case SDL_EVENT_TEXT_INPUT:
-                    // W SDL3 event.text.text to wskaźnik na string UTF-8
                     if (window.event.text.text && window.event.text.text[0] != '\0') {
                         mu_input_text(window.mu_ctx, window.event.text.text);
                     }
                     break;
                 case SDL_EVENT_MOUSE_WHEEL:
-                    // window.event.wheel.y zwraca > 0 gdy kręcisz w górę, < 0 gdy w dół
                     if (window.event.wheel.y > 0.0f) {
-                        uiConfig.scale *= 1.2f; // Przybliżenie o 20%
+                        uiConfig.scale *= 1.2f;
                     } else if (window.event.wheel.y < 0.0f) {
-                        uiConfig.scale /= 1.2f; // Oddalenie o 20%
+                        uiConfig.scale /= 1.2f;
                     }
 
-                    // Zabezpieczenie: limity min/max zoomu (np. od 0.5x do 32x)
+
                     if (uiConfig.scale < 0.5f)  uiConfig.scale = 0.5f;
                     if (uiConfig.scale > 32.0f) uiConfig.scale = 32.0f;
                     break;
@@ -120,6 +121,7 @@ namespace Render {
         uiConfig = {};
         window.window = SDL_CreateWindow("Pixel Editor", WIN_W, WIN_H, SDL_WINDOW_MAXIMIZED );
         window.renderer = SDL_CreateRenderer(window.window, NULL);
+        InitAppIcons(window.renderer);
         window.mu_ctx = new mu_Context();
         mu_init(window.mu_ctx);
         window.paletteTexture = CreatePaletteTexture();
@@ -204,10 +206,93 @@ namespace Render {
 
                     SDL_RenderTexture(window.renderer, window.paletteTexture, nullptr, &dstRect);
                 }
+
+                else if (local_cmd->icon.id > MU_ICON_MAX) {
+                    SDL_Texture* custom_icon = GetTextureByIconID(local_cmd->icon.id);
+                    if (custom_icon) {
+
+                        float icon_w = 50.0f;
+                        float icon_h = 50.0f;
+                        float dst_x = local_cmd->icon.rect.x + (local_cmd->icon.rect.w - icon_w) / 2.0f;
+                        float dst_y = local_cmd->icon.rect.y + (local_cmd->icon.rect.h - icon_h) / 2.0f;
+
+                        SDL_FRect dstRect = { dst_x, dst_y, icon_w, icon_h };
+                        SDL_RenderTexture(window.renderer, custom_icon, nullptr, &dstRect);
+                    }
+                }
                 break;
             }
         }
     }
     SDL_SetRenderClipRect(window.renderer, nullptr);
 }
+
+
+
+
+
+double POS() {
+    double value = std::fmod(static_cast<double>(currentHSV.h) / 60.0, 2.0) - 1.0;
+    return std::abs(value);
+}
+
+Color HSVToRGB(uint8_t pixel_x, uint8_t pixel_y) {
+    // x_pct i y_pct to wartości od 0.0 do 1.0 wyciągnięte z pozycji piksela na kwadracie
+    double s = pixel_x / 255.0;
+    double v = (255 - pixel_y) / 255.0;
+
+    double c = v * s;
+    double x = c * (1.0 - POS());
+    double m = v - c;
+
+    double r_ = 0, g_ = 0, b_ = 0;
+    if (currentHSV.h < 60)        { r_ = c; g_ = x; b_ = 0; }
+    else if (currentHSV.h < 120)  { r_ = x; g_ = c; b_ = 0; }
+    else if (currentHSV.h < 180)  { r_ = 0; g_ = c; b_ = x; }
+    else if (currentHSV.h < 240)  { r_ = 0; g_ = x; b_ = c; }
+    else if (currentHSV.h < 300)  { r_ = x; g_ = 0; b_ = c; }
+    else if (currentHSV.h <= 360) { r_ = c; g_ = 0; b_ = x; }
+
+    return Color{
+        static_cast<uint8_t>((r_ + m) * 255.0),
+        static_cast<uint8_t>((g_ + m) * 255.0),
+        static_cast<uint8_t>((b_ + m) * 255.0),
+        255 // Alfa
+    };
+}
+
+void UpdatePalette(Color (&Palette)[256][256]) {
+    for (int y = 0; y < 256; y++) {
+        for (int x = 0; x < 256; x++) {
+            Palette[y][x] = HSVToRGB(x, y);
+        }
+    }
+}
+
+mu_Color HSVTo_mu_Color(uint8_t pixel_x, uint8_t pixel_y) {
+    // x_pct i y_pct to wartości od 0.0 do 1.0 wyciągnięte z pozycji piksela na kwadracie
+    double s = pixel_x / 255.0;
+    double v = (255 - pixel_y) / 255.0;
+
+    double c = v * s;
+    double x = c * (1.0 - POS());
+    double m = v - c;
+
+    double r_ = 0, g_ = 0, b_ = 0;
+    if (currentHSV.h < 60)        { r_ = c; g_ = x; b_ = 0; }
+    else if (currentHSV.h < 120)  { r_ = x; g_ = c; b_ = 0; }
+    else if (currentHSV.h < 180)  { r_ = 0; g_ = c; b_ = x; }
+    else if (currentHSV.h < 240)  { r_ = 0; g_ = x; b_ = c; }
+    else if (currentHSV.h < 300)  { r_ = x; g_ = 0; b_ = c; }
+    else if (currentHSV.h <= 360) { r_ = c; g_ = 0; b_ = x; }
+
+    return mu_Color{
+        static_cast<uint8_t>((r_ + m) * 255.0),
+        static_cast<uint8_t>((g_ + m) * 255.0),
+        static_cast<uint8_t>((b_ + m) * 255.0),
+        255 // Alfa
+    };
+}
+
+
 }
