@@ -115,8 +115,8 @@ namespace Render {
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
 
-                    if (IsOnCanvas) {
-                         ProcessTool(selectedTool, (int)window.event.button.x, (int)window.event.button.y, Document& doc)
+                    if (IsOnCanvas()) {
+                         ProcessTool(uiConfig.selectedTool, (int)window.event.button.x, (int)window.event.button.y, *window.CurrentFile);
                     }
                     mu_input_mousedown(window.mu_ctx, (int)window.event.button.x, (int)window.event.button.y, MU_MOUSE_LEFT);
                     break;

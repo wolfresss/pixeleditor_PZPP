@@ -52,72 +52,7 @@ void MainLoop(mu_Context* ctx, Document* &CurrentFile) {
 }
 
 
-void process_microui(mu_Context* ctx, Document& doc, std::unique_ptr<ITool>& currentTool, UIConfig &uiConfig) {
-    char charvalue[32];
-    int widths[1] = {-1};
 
-    if (mu_begin_window(ctx, "Toolbar", mu_rect(10, 10, 160, 200))) {
-        mu_layout_row(ctx, 1, widths, 0);
-
-        if (mu_button(ctx, "Pencil")) {
-            currentTool = std::make_unique<Pencil>();
-        }
-        if (mu_button(ctx, "Eraser")) {
-            currentTool = std::make_unique<Eraser>();
-        }
-
-        mu_layout_row(ctx, 1, widths, 0);
-        mu_label(ctx, "Pixel Size:");
-        if (mu_slider_ex(ctx, &uiConfig.PixelSize, 1, 100, 1, charvalue, sizeof(charvalue))) {
-            doc.PixelSize = uiConfig.PixelSize;
-        }
-
-        mu_layout_row(ctx, 1, widths, 0);
-        mu_label(ctx, "Scale:");
-        float value = uiConfig.scale;
-        if (mu_slider_ex(ctx, &value, 0.1f, 20.0f, 0.1f, charvalue, sizeof(charvalue))) {
-            uiConfig.scale = value;
-        }
-
-        mu_layout_row(ctx, 1, widths, 0);
-
-        mu_label(ctx, "Layers:");
-        for (size_t i = 0; i < doc.layers.size(); i++) {
-            mu_text(ctx, doc.layers[i].name.c_str());
-        }
-
-        mu_end_window(ctx);
-    }
-
-    if (mu_begin_window(ctx, "File Manager", mu_rect(10, 470, 160, 150))) {
-        mu_layout_row(ctx, 1, widths, 0);
-        mu_label(ctx, "Filename:");
-
-        mu_textbox(ctx, export_filename, sizeof(export_filename));
-
-        mu_layout_row(ctx, 1, widths, 0);
-        if (mu_button(ctx, "Save (.ppe)")) {
-            WriteFileType(export_filename, doc.height, doc.width, doc.composite());
-        }
-
-        if (mu_button(ctx, "Load (.ppe)")) {
-            u32 loaded_w = 0, loaded_h = 0;
-            std::vector<Color> pixels = ReadFileType(export_filename, loaded_w, loaded_h);
-
-            if (pixels.empty()) {
-                cout << "error, pixels array empty or file missing" << endl;
-            } else {
-                if (loaded_w == doc.width && loaded_h == doc.height) {
-                    doc.activeLayer().pixels = pixels;
-                    cout << "Success: Loaded file data into active layer!" << endl;
-                } else {
-                    cout << "error: Loaded image size doesn't match canvas size!" << endl;
-                }
-            }
-        }
-        mu_end_window(ctx);
-    }
-}
 
 void UpdateRGBAPaletteTexture(SDL_Renderer* renderer, SDL_Texture* texture, uint8_t current_blue) {
     uint32_t pixels[256 * 256];

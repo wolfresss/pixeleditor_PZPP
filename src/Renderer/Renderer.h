@@ -34,6 +34,7 @@ struct UIConfig {
     int layoutWidths[1] = {-1};          // dla mu_layout_row
     bool showGrid = true; //TO DO: implementacja prostego grida
     bool snapToPixel = false; //TO DO: funkcjonalność algorytmy dokumentacja
+    ToolType selectedTool = PENCIL;
 };
 
 struct WindowContext {
