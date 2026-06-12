@@ -12,6 +12,8 @@
 #include "../Resources/binary_icons.h"
 
 bool hold = false;
+float lastMouseX = 0.0f;
+float lastMouseY = 0.0f;
 
 namespace Render {
     WindowContext window;
@@ -41,35 +43,65 @@ namespace Render {
         }
     }
 
-    void ProcessTool(ToolType selectedTool, Document& doc)
-    {
-        float canvasLeft   = (float)offsetX;
-        float canvasRight  = (float)offsetX + (doc.width * zoomScale);
-        float canvasTop    = (float)offsetY;
-        float canvasBottom = (float)offsetY + (doc.height * zoomScale);
-        if (window.event.button.x >= canvasLeft && window.event.button.x <= canvasRight &&
-         window.event.button.y >= canvasTop  && window.event.button.y <= canvasBottom) {
+    void drawLineOnCanvas(Document& doc, int x0, int y0, int x1, int y1, ToolType selectedTool) {
+        int dx = std::abs(x1 - x0);
+        int dy = std::abs(y1 - y0);
+        int sx = (x0 < x1) ? 1 : -1;
+        int sy = (y0 < y1) ? 1 : -1;
+        int err = dx - dy;
 
-            int pixelX = static_cast<int>((window.event.button.x - canvasLeft) / zoomScale);
-            int pixelY = static_cast<int>((window.event.button.y- canvasTop) / zoomScale);
-            if (pixelX < 0) pixelX = 0;
-            if (pixelX >= doc.width) pixelX = doc.width - 1;
-            if (pixelY < 0) pixelY = 0;
-            if (pixelY >= doc.height) pixelY = doc.height - 1;
+        while (true) {
             switch (selectedTool) {
                 case PENCIL:
-                    executePencil( doc, pixelX, pixelY,1, currentColor );
+                    executePencil(doc, x0, y0, 1, currentColor);
                     break;
                 case RUBBER:
-                    executeRubber( doc, window.event.button.x, window.event.button.y, 1);
+                    executeRubber(doc, x0, y0, 1);
                     break;
-                case FLOODFILL:
+                default:
                     break;
+            }
+
+            if (x0 == x1 && y0 == y1) break;
+            int e2 = 2 * err;
+            if (e2 > -dy) {
+                err -= dy;
+                x0 += sx;
+            }
+            if (e2 < dx) {
+                err += dx;
+                y0 += sy;
             }
         }
     }
+
+
+    void ProcessTool(ToolType selectedTool, Document& doc, float mouseX, float mouseY, bool isFirstClick)
+    {
+        float canvasLeft   = (float)offsetX;
+        float canvasTop    = (float)offsetY;
+
+        int currentPixelX = static_cast<int>((mouseX - canvasLeft) / zoomScale);
+        int currentPixelY = static_cast<int>((mouseY - canvasTop) / zoomScale);
+
+        int prevPixelX = static_cast<int>((lastMouseX - canvasLeft) / zoomScale);
+        int prevPixelY = static_cast<int>((lastMouseY - canvasTop) / zoomScale);
+
+
+        if (isFirstClick) {
+            switch (selectedTool) {
+                case PENCIL: executePencil(doc, currentPixelX, currentPixelY, 1, currentColor); break;
+                case RUBBER: executeRubber(doc, currentPixelX, currentPixelY, 1); break;
+                default: break;
+            }
+        } else {
+
+            drawLineOnCanvas(doc, prevPixelX, prevPixelY, currentPixelX, currentPixelY, selectedTool);
+        }
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+    }
     SDL_Texture* CreatePaletteTexture() {
-        // TO DO: steaming for modification
         SDL_Texture* texture = SDL_CreateTexture(window.renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, 256, 256);
         if (!texture) {
             SDL_Log("Failed to create palette texture: %s", SDL_GetError());
@@ -125,13 +157,24 @@ namespace Render {
                     window.shouldQuit = true;
                     break;
                 case SDL_EVENT_MOUSE_MOTION:
-                    mu_input_mousemove(window.mu_ctx, (int)window.event.motion.x, (int)window.event.motion.y);
                     if (hold && window.CurrentFile) {
-                        ProcessTool(uiConfig.selectedTool, *window.CurrentFile);
+                        // isFirstClick = false, ponieważ mysz jest już przesuwana i trzymana
+                        ProcessTool(uiConfig.selectedTool, *window.CurrentFile, window.event.motion.x, window.event.motion.y, false);
                     }
+                    mu_input_mousemove(window.mu_ctx, (int)window.event.motion.x, (int)window.event.motion.y);
                     break;
+
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                    hold = true;
+                    if (window.event.button.button == SDL_BUTTON_LEFT) {
+                        hold = true;
+
+                        lastMouseX = window.event.button.x;
+                        lastMouseY = window.event.button.y;
+
+                        if (window.CurrentFile) {
+                            ProcessTool(uiConfig.selectedTool, *window.CurrentFile, window.event.button.x, window.event.button.y, true);
+                        }
+                    }
                     mu_input_mousedown(window.mu_ctx, (int)window.event.button.x, (int)window.event.button.y, MU_MOUSE_LEFT);
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_UP:
