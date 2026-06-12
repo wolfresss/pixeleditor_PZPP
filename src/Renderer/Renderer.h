@@ -51,7 +51,9 @@ struct WindowContext {
 
 namespace Render {
 
-
+    extern int offsetX;
+    extern int offsetY;
+    extern float zoomScale;
    // CONSTANTS
     inline constexpr int WIN_W = 1500;
     inline constexpr int WIN_H = 600;

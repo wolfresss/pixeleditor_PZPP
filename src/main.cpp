@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 
 
         if (Render::window.CurrentFile && Render::window.canvasRenderer) {
-            float zoomScale = Render::uiConfig.scale;
+            Render::zoomScale = Render::uiConfig.scale;
 
             int windowWidth = Render::WIN_W;
             int windowHeight = Render::WIN_H;
@@ -49,15 +49,15 @@ int main(int argc, char* argv[]) {
             int docHeight = Render::window.CurrentFile->height;
 
 
-            int offsetX = (windowWidth - (docWidth * zoomScale)) / 2 + 100;
-            int offsetY = (windowHeight - (docHeight * zoomScale)) / 2;
+            Render::offsetX = (windowWidth - (docWidth * Render::zoomScale)) / 2 + 100;
+            Render::offsetY = (windowHeight - (docHeight * Render::zoomScale)) / 2;
 
             Render::window.canvasRenderer->draw(
                 Render::window.renderer,
                 *Render::window.CurrentFile,
-                offsetX,
-                offsetY,
-                zoomScale
+                Render::offsetX,
+                Render::offsetY,
+                Render::zoomScale
             );
         }
 

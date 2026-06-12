@@ -11,18 +11,18 @@
 #include <string.h>
 #include "../Resources/binary_icons.h"
 
+bool hold = false;
+
 namespace Render {
     WindowContext window;
     UIConfig uiConfig;
     HSV currentHSV{0, 255, 255};
     Color currentColor;
+    int offsetX;
+     int offsetY;
+     float zoomScale;
 
-
-
-
-    bool IsOnCanvas() {
-
-    }
+    //TO DO: add line interpolation
     void executePencil(Document& doc, int x, int y, int PixelSize, Color drawColor) {
         auto& layer = doc.activeLayer();
         if (x >= 0 && x < layer.width && y >= 0 && y < layer.height) {
@@ -41,17 +41,31 @@ namespace Render {
         }
     }
 
-    void ProcessTool(ToolType selectedTool, int x, int y, Document& doc)
+    void ProcessTool(ToolType selectedTool, Document& doc)
     {
-        switch (selectedTool) {
-            case PENCIL:
-                executePencil( doc, x, y,1, currentColor );
-                break;
-            case RUBBER:
-                executeRubber( doc, x, y, 1);
-                break;
-            case FLOODFILL:
-                break;
+        float canvasLeft   = (float)offsetX;
+        float canvasRight  = (float)offsetX + (doc.width * zoomScale);
+        float canvasTop    = (float)offsetY;
+        float canvasBottom = (float)offsetY + (doc.height * zoomScale);
+        if (window.event.button.x >= canvasLeft && window.event.button.x <= canvasRight &&
+         window.event.button.y >= canvasTop  && window.event.button.y <= canvasBottom) {
+
+            int pixelX = static_cast<int>((window.event.button.x - canvasLeft) / zoomScale);
+            int pixelY = static_cast<int>((window.event.button.y- canvasTop) / zoomScale);
+            if (pixelX < 0) pixelX = 0;
+            if (pixelX >= doc.width) pixelX = doc.width - 1;
+            if (pixelY < 0) pixelY = 0;
+            if (pixelY >= doc.height) pixelY = doc.height - 1;
+            switch (selectedTool) {
+                case PENCIL:
+                    executePencil( doc, pixelX, pixelY,1, currentColor );
+                    break;
+                case RUBBER:
+                    executeRubber( doc, window.event.button.x, window.event.button.y, 1);
+                    break;
+                case FLOODFILL:
+                    break;
+            }
         }
     }
     SDL_Texture* CreatePaletteTexture() {
@@ -112,15 +126,16 @@ namespace Render {
                     break;
                 case SDL_EVENT_MOUSE_MOTION:
                     mu_input_mousemove(window.mu_ctx, (int)window.event.motion.x, (int)window.event.motion.y);
+                    if (hold && window.CurrentFile) {
+                        ProcessTool(uiConfig.selectedTool, *window.CurrentFile);
+                    }
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
-
-                    if (IsOnCanvas()) {
-                         ProcessTool(uiConfig.selectedTool, (int)window.event.button.x, (int)window.event.button.y, *window.CurrentFile);
-                    }
+                    hold = true;
                     mu_input_mousedown(window.mu_ctx, (int)window.event.button.x, (int)window.event.button.y, MU_MOUSE_LEFT);
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_UP:
+                    hold = false;
                     mu_input_mouseup(window.mu_ctx, (int)window.event.button.x, (int)window.event.button.y, MU_MOUSE_LEFT);
                     break;
                 case SDL_EVENT_KEY_DOWN:
