@@ -1,5 +1,6 @@
 #include "structs.h"
 
+u32 pixelSize = 1;
 Layer::Layer(int id, std::string name, u32 w, u32 h)
     : Id(id), name(name),
 width(w), height(h),
@@ -20,11 +21,11 @@ void Layer::setPixel(u32 x, u32 y, Color color) {
     }
 }
 
-void Layer::setPixels(u32 cx, u32 cy, u32 r, Color color) {
-    for(int x = cx - r; x <= cx + r; ++x) {
-        for(int y = cy - r; y <= cy + r; ++y) {
+void Layer::setPixels(u32 cx, u32 cy, Color color) {
+    for(int x = cx - pixelSize; x <= cx + pixelSize; ++x) {
+        for(int y = cy - pixelSize; y <= cy + pixelSize; ++y) {
             int dx = x - cx, dy = y - cy;
-            if(dx*dx + dy*dy <= r*r) {
+            if(dx*dx + dy*dy <= pixelSize*pixelSize) {
                 setPixel(x, y, color);
             }
         }

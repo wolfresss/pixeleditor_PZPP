@@ -4,6 +4,7 @@
 #include "Types.h"
 
 
+extern u32 pixelSize;
 struct Layer {
     u32 IdD;
     u32 Id;
@@ -16,7 +17,7 @@ struct Layer {
     Layer(int id, std::string name, u32 w, u32 h);
     Layer(int id, std::string name, u32 w, u32 h, std::vector<Color> p);
     void setPixel(u32 x, u32 y, Color color);
-    void setPixels(u32 cx, u32 cy, u32 r, Color color);
+    void setPixels(u32 cx, u32 cy, Color color);
     void setAllPixels(Color color);
 };
 

@@ -3,6 +3,7 @@
 //
 
 #include "Renderer.h"
+#include "../core/structs.h"
 
 #include <cmath>
 #include <iostream>
@@ -28,7 +29,7 @@ namespace Render {
     void executePencil(Document& doc, int x, int y, int PixelSize, Color drawColor) {
         auto& layer = doc.activeLayer();
         if (x >= 0 && x < layer.width && y >= 0 && y < layer.height) {
-            layer.setPixels(x, y, PixelSize,drawColor);
+            layer.setPixels(x, y,drawColor);
         }
     }
     void executeRubber(Document& doc, int x, int y, int PixelSize) {
@@ -38,7 +39,7 @@ namespace Render {
             // Gumka ustawia kolor na w pełni przezroczysty
             // TO DO: Kontrola przezroczystości gumki
             Color drawColor = {0, 0, 0, 0};
-            layer.setPixels(x, y,PixelSize, drawColor);
+            layer.setPixels(x, y, drawColor);
 
         }
     }
