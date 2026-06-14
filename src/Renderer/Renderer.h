@@ -29,12 +29,21 @@ enum ToolType {
 struct mu_Context;
 struct UIConfig {
     float scale = 1.0f;
-    mu_Real PixelSize = 1.0F;// domyślna wartość slidera
+    mu_Real PixelSize = 0.0F;// domyślna wartość slidera
     char layerOpacityText[32] = {};      // buffer dla mu_slider_ex
     int layoutWidths[1] = {-1};          // dla mu_layout_row
     bool showGrid = true; //TO DO: implementacja prostego grida
     bool snapToPixel = false; //TO DO: funkcjonalność algorytmy dokumentacja
     ToolType selectedTool = PENCIL;
+
+    int leftPanelWidth;
+    int rightPanelWidth;
+
+    int toolWidths[2] = {54, 54};
+    int toolRowHeight = 54;
+
+    int paletteColWidths[10] = {18, 18, 18, 18, 18, 18, 18, 18, 18, 18};
+    int paletteRowHeight = 18;
 };
 
 struct WindowContext {
@@ -55,8 +64,8 @@ namespace Render {
     extern int offsetY;
     extern float zoomScale;
    // CONSTANTS
-    inline constexpr int WIN_W = 1500;
-    inline constexpr int WIN_H = 600;
+    inline constexpr int WIN_W = 1920;
+    inline constexpr int WIN_H = 1080;
     // GLOBAL VARIABLES
     extern int CANVAS_SIZE;
    extern WindowContext window;
@@ -74,16 +83,14 @@ namespace Render {
     SDL_Texture* CreatePaletteTexture();
     extern HSV currentHSV;
     extern Color currentColor;
-
+    HSV RGBToHSV(Color rgba);
     // Funkcje pomocnicze microui do tekstu
     int text_width(mu_Font font, const char *text, int len);
     int text_height(mu_Font font);
 
     // Zarządzanie ikonami binarnymi
-    void InitAppIcons(SDL_Renderer* renderer);
     void FreeAppIcons();
-
-
+    static void InitAppIcons(SDL_Renderer* renderer);
 
 }
 

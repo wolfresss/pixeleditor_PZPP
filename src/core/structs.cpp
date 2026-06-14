@@ -1,6 +1,7 @@
 #include "structs.h"
 
 u32 pixelSize = 1;
+std::vector<Color> Document::dynamic_palette;
 Layer::Layer(int id, std::string name, u32 w, u32 h)
     : Id(id), name(name),
 width(w), height(h),
@@ -53,6 +54,7 @@ std::vector<Color> setAllPixelsChunk(Color color, u32 w, u32 h) {
 Document::Document(u32 w, u32 h, std::string n, Color color) : width(w), height(h),name(n)
 {
     addLayer(n, color);
+
 }
 Document::Document(u32 w, u32 h, std::string n, std::vector<Color> pixels) : width(w), height(h),name(n)
 {

@@ -4,6 +4,7 @@
 
 #include "Renderer.h"
 #include "../core/structs.h"
+#include <algorithm>
 
 #include <cmath>
 #include <iostream>
@@ -25,7 +26,6 @@ namespace Render {
      int offsetY;
      float zoomScale;
 
-    //TO DO: add line interpolation
     void executePencil(Document& doc, int x, int y, int PixelSize, Color drawColor) {
         auto& layer = doc.activeLayer();
         if (x >= 0 && x < layer.width && y >= 0 && y < layer.height) {
@@ -36,8 +36,6 @@ namespace Render {
         auto& layer = doc.activeLayer();
 
         if (x >= 0 && x < layer.width && y >= 0 && y < layer.height) {
-            // Gumka ustawia kolor na w pełni przezroczysty
-            // TO DO: Kontrola przezroczystości gumki
             Color drawColor = {0, 0, 0, 0};
             layer.setPixels(x, y, drawColor);
 
@@ -131,12 +129,17 @@ namespace Render {
     }
 
 
-    void InitAppIcons(SDL_Renderer* renderer) {
-        my_ui_icons[0].icon_id = ICON_PBM_PENCIL;
-        my_ui_icons[0].texture = LoadIconFrom64BitArray(renderer, pencil_icon_bits, 50, 50);
-
-        my_ui_icons[1].icon_id = ICON_PBM_RUBBER;
-        my_ui_icons[1].texture = LoadIconFrom64BitArray(renderer, rubber_icon_bits, 50, 50);
+    inline void InitAppIcons(SDL_Renderer* renderer) {
+        int total_icons = sizeof(generated_icons_meta) / sizeof(PBM_SourceMeta);
+        for (int i = 0; i < total_icons; i++) {
+            my_ui_icons[i].icon_id = generated_icons_meta[i].id;
+            my_ui_icons[i].texture = LoadIconFrom64BitArray(
+                renderer,
+                generated_icons_meta[i].bits,
+                generated_icons_meta[i].w,
+                generated_icons_meta[i].h
+            );
+        }
     }
 
     void FreeAppIcons() {
@@ -221,10 +224,14 @@ namespace Render {
         uiConfig = {};
         window.window = SDL_CreateWindow("Pixel Editor", WIN_W, WIN_H, SDL_WINDOW_MAXIMIZED );
         window.renderer = SDL_CreateRenderer(window.window, NULL);
-        InitAppIcons(window.renderer);
+        Render::InitAppIcons(window.renderer);
         window.mu_ctx = new mu_Context();
         mu_init(window.mu_ctx);
+        // NOTE(Iza): for now we need to initlize it like that before palleteTexture
+        uiConfig.leftPanelWidth = WIN_W / 8;
+        uiConfig.rightPanelWidth = WIN_W / 8;
         window.paletteTexture = CreatePaletteTexture();
+
         window.font = TTF_OpenFont("Pix32.ttf", 12);
         if (window.font == NULL) {
             std::cout<< SDL_GetError() << std::endl;
@@ -337,7 +344,6 @@ double POS() {
 }
 
 Color HSVToRGB(uint8_t pixel_x, uint8_t pixel_y) {
-    // x_pct i y_pct to wartości od 0.0 do 1.0 wyciągnięte z pozycji piksela na kwadracie
     double s = pixel_x / 255.0;
     double v = (255 - pixel_y) / 255.0;
 
@@ -361,6 +367,7 @@ Color HSVToRGB(uint8_t pixel_x, uint8_t pixel_y) {
     };
 }
 
+
 void UpdatePalette(Color (&Palette)[256][256]) {
     for (int y = 0; y < 256; y++) {
         for (int x = 0; x < 256; x++) {
@@ -369,8 +376,51 @@ void UpdatePalette(Color (&Palette)[256][256]) {
     }
 }
 
+    HSV RGBToHSV(Color rgba) {
+        HSV hsv;
+        double r = rgba.r / 255.0;
+        double g = rgba.g / 255.0;
+        double b = rgba.b / 255.0;
+
+        double max_val = std::max({r, g, b});
+        double min_val = std::min({r, g, b});
+        double delta = max_val - min_val;
+
+        hsv.v = static_cast<uint8_t>(max_val * 255.0);
+
+        if (max_val > 0.0) {
+            hsv.s = static_cast<uint8_t>((delta / max_val) * 255.0);
+        } else {
+
+            hsv.s = 0;
+            hsv.h = 0;
+            return hsv;
+        }
+
+        double h_deg = 0.0;
+        if (delta > 0.0) {
+            if (max_val == r) {
+                h_deg = 60.0 * std::fmod(((g - b) / delta), 6.0);
+            } else if (max_val == g) {
+                h_deg = 60.0 * (((b - r) / delta) + 2.0);
+            } else if (max_val == b) {
+                h_deg = 60.0 * (((r - g) / delta) + 4.0);
+            }
+
+            if (h_deg < 0.0) {
+                h_deg += 360.0;
+            }
+        } else {
+            h_deg = 0.0;
+        }
+
+        hsv.h = static_cast<uint16_t>((h_deg / 360.0) * 255.0);
+
+        return hsv;
+    }
+
 mu_Color HSVTo_mu_Color(uint8_t pixel_x, uint8_t pixel_y) {
-    // x_pct i y_pct to wartości od 0.0 do 1.0 wyciągnięte z pozycji piksela na kwadracie
+
     double s = pixel_x / 255.0;
     double v = (255 - pixel_y) / 255.0;
 
