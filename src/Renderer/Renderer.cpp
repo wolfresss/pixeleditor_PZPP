@@ -1,17 +1,13 @@
-//
-// Created by izakr on 01/06/2026.
-//
-
 #include "Renderer.h"
 #include "../core/structs.h"
-#include <algorithm>
+#include "ColorUtils.h"
+#include "CanvasTools.h"
+#include "../Resources/binary_icons.h"
 
-#include <cmath>
+#include <algorithm>
 #include <iostream>
-#include <ostream>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <string.h>
-#include "../Resources/binary_icons.h"
 
 bool hold = false;
 float lastMouseX = 0.0f;
@@ -22,84 +18,11 @@ namespace Render {
     UIConfig uiConfig;
     HSV currentHSV{0, 255, 255};
     Color currentColor;
-    int offsetX;
-     int offsetY;
-     float zoomScale;
 
-    void executePencil(Document& doc, int x, int y, int PixelSize, Color drawColor) {
-        auto& layer = doc.activeLayer();
-        if (x >= 0 && x < layer.width && y >= 0 && y < layer.height) {
-            layer.setPixels(x, y,drawColor);
-        }
-    }
-    void executeRubber(Document& doc, int x, int y, int PixelSize) {
-        auto& layer = doc.activeLayer();
+    int offsetX = 100;
+    int offsetY = 100;
+    float zoomScale = 8.0f;
 
-        if (x >= 0 && x < layer.width && y >= 0 && y < layer.height) {
-            Color drawColor = {0, 0, 0, 0};
-            layer.setPixels(x, y, drawColor);
-
-        }
-    }
-
-    void drawLineOnCanvas(Document& doc, int x0, int y0, int x1, int y1, ToolType selectedTool) {
-        int dx = std::abs(x1 - x0);
-        int dy = std::abs(y1 - y0);
-        int sx = (x0 < x1) ? 1 : -1;
-        int sy = (y0 < y1) ? 1 : -1;
-        int err = dx - dy;
-
-        while (true) {
-            switch (selectedTool) {
-                case PENCIL:
-                    executePencil(doc, x0, y0, 1, currentColor);
-                    break;
-                case RUBBER:
-                    executeRubber(doc, x0, y0, 1);
-                    break;
-                default:
-                    break;
-            }
-
-            if (x0 == x1 && y0 == y1) break;
-            int e2 = 2 * err;
-            if (e2 > -dy) {
-                err -= dy;
-                x0 += sx;
-            }
-            if (e2 < dx) {
-                err += dx;
-                y0 += sy;
-            }
-        }
-    }
-
-
-    void ProcessTool(ToolType selectedTool, Document& doc, float mouseX, float mouseY, bool isFirstClick)
-    {
-        float canvasLeft   = (float)offsetX;
-        float canvasTop    = (float)offsetY;
-
-        int currentPixelX = static_cast<int>((mouseX - canvasLeft) / zoomScale);
-        int currentPixelY = static_cast<int>((mouseY - canvasTop) / zoomScale);
-
-        int prevPixelX = static_cast<int>((lastMouseX - canvasLeft) / zoomScale);
-        int prevPixelY = static_cast<int>((lastMouseY - canvasTop) / zoomScale);
-
-
-        if (isFirstClick) {
-            switch (selectedTool) {
-                case PENCIL: executePencil(doc, currentPixelX, currentPixelY, 1, currentColor); break;
-                case RUBBER: executeRubber(doc, currentPixelX, currentPixelY, 1); break;
-                default: break;
-            }
-        } else {
-
-            drawLineOnCanvas(doc, prevPixelX, prevPixelY, currentPixelX, currentPixelY, selectedTool);
-        }
-        lastMouseX = mouseX;
-        lastMouseY = mouseY;
-    }
     SDL_Texture* CreatePaletteTexture() {
         SDL_Texture* texture = SDL_CreateTexture(window.renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, 256, 256);
         if (!texture) {
@@ -112,8 +35,7 @@ namespace Render {
         if (!window.paletteTexture) return;
 
         Color Palette[256][256];
-
-        UpdatePalette(Palette);
+        ColorUtils::UpdatePalette(currentHSV, Palette);
 
         SDL_UpdateTexture(window.paletteTexture, nullptr, Palette, 256 * sizeof(uint32_t));
     }
@@ -124,10 +46,10 @@ namespace Render {
         }
         return len * 8;
     }
+
     int text_height(mu_Font font) {
         return 16;
     }
-
 
     inline void InitAppIcons(SDL_Renderer* renderer) {
         int total_icons = sizeof(generated_icons_meta) / sizeof(PBM_SourceMeta);
@@ -150,6 +72,7 @@ namespace Render {
             }
         }
     }
+
     void Process_Events() {
         if (!window.mu_ctx) {
             std::cout << "[CRITICAL] Process_Events widzi mu_ctx jako NULL!" << std::endl;
@@ -162,8 +85,7 @@ namespace Render {
                     break;
                 case SDL_EVENT_MOUSE_MOTION:
                     if (hold && window.CurrentFile) {
-                        // isFirstClick = false, ponieważ mysz jest już przesuwana i trzymana
-                        ProcessTool(uiConfig.selectedTool, *window.CurrentFile, window.event.motion.x, window.event.motion.y, false);
+                        CanvasTools::ProcessTool(uiConfig.selectedTool, *window.CurrentFile, window.event.motion.x, window.event.motion.y, false, currentColor, offsetX, offsetY, zoomScale);
                     }
                     mu_input_mousemove(window.mu_ctx, (int)window.event.motion.x, (int)window.event.motion.y);
                     break;
@@ -171,12 +93,11 @@ namespace Render {
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
                     if (window.event.button.button == SDL_BUTTON_LEFT) {
                         hold = true;
-
                         lastMouseX = window.event.button.x;
                         lastMouseY = window.event.button.y;
 
                         if (window.CurrentFile) {
-                            ProcessTool(uiConfig.selectedTool, *window.CurrentFile, window.event.button.x, window.event.button.y, true);
+                            CanvasTools::ProcessTool(uiConfig.selectedTool, *window.CurrentFile, window.event.button.x, window.event.button.y, true, currentColor, offsetX, offsetY, zoomScale);
                         }
                     }
                     mu_input_mousedown(window.mu_ctx, (int)window.event.button.x, (int)window.event.button.y, MU_MOUSE_LEFT);
@@ -205,38 +126,34 @@ namespace Render {
                     }
                     break;
                 case SDL_EVENT_MOUSE_WHEEL:
-                    if (window.event.wheel.y > 0.0f) {
-                        uiConfig.scale *= 1.2f;
-                    } else if (window.event.wheel.y < 0.0f) {
-                        uiConfig.scale /= 1.2f;
-                    }
+                    // Zmiana skali zbliżenia (zoomScale) zamiast wartości w konfiguracji UI
+                    if (window.event.wheel.y > 0.0f)       zoomScale *= 1.2f;
+                    else if (window.event.wheel.y < 0.0f)  zoomScale /= 1.2f;
 
-
-                    if (uiConfig.scale < 0.5f)  uiConfig.scale = 0.5f;
-                    if (uiConfig.scale > 32.0f) uiConfig.scale = 32.0f;
+                    if (zoomScale < 0.5f)  zoomScale = 0.5f;
+                    if (zoomScale > 32.0f) zoomScale = 32.0f;
                     break;
-
             }
         }
     }
+
     void Init() {
         window = {};
         uiConfig = {};
-        window.window = SDL_CreateWindow("Pixel Editor", WIN_W, WIN_H, SDL_WINDOW_MAXIMIZED );
+        window.window = SDL_CreateWindow("Pixel Editor", WIN_W, WIN_H, SDL_WINDOW_MAXIMIZED);
         window.renderer = SDL_CreateRenderer(window.window, NULL);
         Render::InitAppIcons(window.renderer);
         window.mu_ctx = new mu_Context();
         mu_init(window.mu_ctx);
-        // NOTE(Iza): for now we need to initlize it like that before palleteTexture
+
         uiConfig.leftPanelWidth = WIN_W / 8;
         uiConfig.rightPanelWidth = WIN_W / 8;
         window.paletteTexture = CreatePaletteTexture();
 
         window.font = TTF_OpenFont("Pix32.ttf", 12);
         if (window.font == NULL) {
-            std::cout<< SDL_GetError() << std::endl;
+            std::cout << SDL_GetError() << std::endl;
         }
-        if (window.font == NULL) SDL_GetError();
         UpdateGradientSquare();
         window.mu_ctx->text_width = text_width;
         window.mu_ctx->text_height = text_height;
@@ -244,205 +161,69 @@ namespace Render {
         SDL_StartTextInput(window.window);
     }
 
-   void RenderMicroUI() {
-    mu_Command* local_cmd = nullptr;
-
-    while (mu_next_command(window.mu_ctx, &local_cmd)) {
-        switch (local_cmd->type) {
-            case MU_COMMAND_RECT: {
-                SDL_FRect rect = {
-                    (float)local_cmd->rect.rect.x,
-                    (float)local_cmd->rect.rect.y,
-                    (float)local_cmd->rect.rect.w,
-                    (float)local_cmd->rect.rect.h
-                };
-                SDL_SetRenderDrawColor(window.renderer, local_cmd->rect.color.r, local_cmd->rect.color.g, local_cmd->rect.color.b, local_cmd->rect.color.a);
-                SDL_RenderFillRect(window.renderer, &rect);
-                break;
-            }
-            case MU_COMMAND_TEXT: {
-                if (window.font) {
-                    SDL_Color color = {
-                        local_cmd->text.color.r,
-                        local_cmd->text.color.g,
-                        local_cmd->text.color.b,
-                        local_cmd->text.color.a
+    void RenderMicroUI() {
+        mu_Command* local_cmd = nullptr;
+        while (mu_next_command(window.mu_ctx, &local_cmd)) {
+            switch (local_cmd->type) {
+                case MU_COMMAND_RECT: {
+                    SDL_FRect rect = {
+                        (float)local_cmd->rect.rect.x,
+                        (float)local_cmd->rect.rect.y,
+                        (float)local_cmd->rect.rect.w,
+                        (float)local_cmd->rect.rect.h
                     };
-
-                    SDL_Surface* surface = TTF_RenderText_Blended_Wrapped(window.font, local_cmd->text.str, 0, color, 0);
-
-                    if (surface) {
-                        SDL_Texture* texture = SDL_CreateTextureFromSurface(window.renderer, surface);
-
-                        if (texture) {
-                            float w, h;
-                            SDL_GetTextureSize(texture, &w, &h);
-
-                            SDL_FRect dst_rect = {
-                                (float)local_cmd->text.pos.x,
-                                (float)local_cmd->text.pos.y,
-                                w,
-                                h
-                            };
-                            SDL_RenderTexture(window.renderer, texture, nullptr, &dst_rect);
-                            SDL_DestroyTexture(texture);
+                    SDL_SetRenderDrawColor(window.renderer, local_cmd->rect.color.r, local_cmd->rect.color.g, local_cmd->rect.color.b, local_cmd->rect.color.a);
+                    SDL_RenderFillRect(window.renderer, &rect);
+                    break;
+                }
+                case MU_COMMAND_TEXT: {
+                    if (window.font) {
+                        SDL_Color color = {
+                            local_cmd->text.color.r,
+                            local_cmd->text.color.g,
+                            local_cmd->text.color.b,
+                            local_cmd->text.color.a
+                        };
+                        SDL_Surface* surface = TTF_RenderText_Blended_Wrapped(window.font, local_cmd->text.str, 0, color, 0);
+                        if (surface) {
+                            SDL_Texture* texture = SDL_CreateTextureFromSurface(window.renderer, surface);
+                            if (texture) {
+                                float w, h;
+                                SDL_GetTextureSize(texture, &w, &h);
+                                SDL_FRect dst_rect = { (float)local_cmd->text.pos.x, (float)local_cmd->text.pos.y, w, h };
+                                SDL_RenderTexture(window.renderer, texture, nullptr, &dst_rect);
+                                SDL_DestroyTexture(texture);
+                            }
+                            SDL_DestroySurface(surface);
                         }
-                        SDL_DestroySurface(surface);
                     }
+                    break;
                 }
-                break;
-            }
-            case MU_COMMAND_CLIP: {
-                SDL_Rect clip = {
-                    local_cmd->clip.rect.x,
-                    local_cmd->clip.rect.y,
-                    local_cmd->clip.rect.w,
-                    local_cmd->clip.rect.h
-                };
-                SDL_SetRenderClipRect(window.renderer, &clip);
-                break;
-            }
-            case MU_COMMAND_ICON: {
-                if (local_cmd->icon.id == MU_ICON_MAX) {
-                    SDL_FRect dstRect = {
-                        static_cast<float>(local_cmd->icon.rect.x),
-                        static_cast<float>(local_cmd->icon.rect.y),
-                        static_cast<float>(local_cmd->icon.rect.w),
-                        static_cast<float>(local_cmd->icon.rect.h)
-                    };
-
-                    SDL_RenderTexture(window.renderer, window.paletteTexture, nullptr, &dstRect);
+                case MU_COMMAND_CLIP: {
+                    SDL_Rect clip = { local_cmd->clip.rect.x, local_cmd->clip.rect.y, local_cmd->clip.rect.w, local_cmd->clip.rect.h };
+                    SDL_SetRenderClipRect(window.renderer, &clip);
+                    break;
                 }
-
-                else if (local_cmd->icon.id > MU_ICON_MAX) {
-                    SDL_Texture* custom_icon = GetTextureByIconID(local_cmd->icon.id);
-                    if (custom_icon) {
-
-                        float icon_w = 50.0f;
-                        float icon_h = 50.0f;
-                        float dst_x = local_cmd->icon.rect.x + (local_cmd->icon.rect.w - icon_w) / 2.0f;
-                        float dst_y = local_cmd->icon.rect.y + (local_cmd->icon.rect.h - icon_h) / 2.0f;
-
-                        SDL_FRect dstRect = { dst_x, dst_y, icon_w, icon_h };
-                        SDL_RenderTexture(window.renderer, custom_icon, nullptr, &dstRect);
+                case MU_COMMAND_ICON: {
+                    if (local_cmd->icon.id == MU_ICON_MAX) {
+                        SDL_FRect dstRect = { (float)local_cmd->icon.rect.x, (float)local_cmd->icon.rect.y, (float)local_cmd->icon.rect.w, (float)local_cmd->icon.rect.h };
+                        SDL_RenderTexture(window.renderer, window.paletteTexture, nullptr, &dstRect);
                     }
+                    else if (local_cmd->icon.id > MU_ICON_MAX) {
+                        SDL_Texture* custom_icon = GetTextureByIconID(local_cmd->icon.id);
+                        if (custom_icon) {
+                            float icon_w = 50.0f;
+                            float icon_h = 50.0f;
+                            float dst_x = local_cmd->icon.rect.x + (local_cmd->icon.rect.w - icon_w) / 2.0f;
+                            float dst_y = local_cmd->icon.rect.y + (local_cmd->icon.rect.h - icon_h) / 2.0f;
+                            SDL_FRect dstRect = { dst_x, dst_y, icon_w, icon_h };
+                            SDL_RenderTexture(window.renderer, custom_icon, nullptr, &dstRect);
+                        }
+                    }
+                    break;
                 }
-                break;
             }
         }
+        SDL_SetRenderClipRect(window.renderer, nullptr);
     }
-    SDL_SetRenderClipRect(window.renderer, nullptr);
-}
-
-
-
-
-
-double POS() {
-    double value = std::fmod(static_cast<double>(currentHSV.h) / 60.0, 2.0) - 1.0;
-    return std::abs(value);
-}
-
-Color HSVToRGB(uint8_t pixel_x, uint8_t pixel_y) {
-    double s = pixel_x / 255.0;
-    double v = (255 - pixel_y) / 255.0;
-
-    double c = v * s;
-    double x = c * (1.0 - POS());
-    double m = v - c;
-
-    double r_ = 0, g_ = 0, b_ = 0;
-    if (currentHSV.h < 60)        { r_ = c; g_ = x; b_ = 0; }
-    else if (currentHSV.h < 120)  { r_ = x; g_ = c; b_ = 0; }
-    else if (currentHSV.h < 180)  { r_ = 0; g_ = c; b_ = x; }
-    else if (currentHSV.h < 240)  { r_ = 0; g_ = x; b_ = c; }
-    else if (currentHSV.h < 300)  { r_ = x; g_ = 0; b_ = c; }
-    else if (currentHSV.h <= 360) { r_ = c; g_ = 0; b_ = x; }
-
-    return Color{
-        static_cast<uint8_t>((r_ + m) * 255.0),
-        static_cast<uint8_t>((g_ + m) * 255.0),
-        static_cast<uint8_t>((b_ + m) * 255.0),
-        255 // Alfa
-    };
-}
-
-
-void UpdatePalette(Color (&Palette)[256][256]) {
-    for (int y = 0; y < 256; y++) {
-        for (int x = 0; x < 256; x++) {
-            Palette[y][x] = HSVToRGB(x, y);
-        }
-    }
-}
-
-    HSV RGBToHSV(Color rgba) {
-        HSV hsv;
-        double r = rgba.r / 255.0;
-        double g = rgba.g / 255.0;
-        double b = rgba.b / 255.0;
-
-        double max_val = std::max({r, g, b});
-        double min_val = std::min({r, g, b});
-        double delta = max_val - min_val;
-
-        hsv.v = static_cast<uint8_t>(max_val * 255.0);
-
-        if (max_val > 0.0) {
-            hsv.s = static_cast<uint8_t>((delta / max_val) * 255.0);
-        } else {
-
-            hsv.s = 0;
-            hsv.h = 0;
-            return hsv;
-        }
-
-        double h_deg = 0.0;
-        if (delta > 0.0) {
-            if (max_val == r) {
-                h_deg = 60.0 * std::fmod(((g - b) / delta), 6.0);
-            } else if (max_val == g) {
-                h_deg = 60.0 * (((b - r) / delta) + 2.0);
-            } else if (max_val == b) {
-                h_deg = 60.0 * (((r - g) / delta) + 4.0);
-            }
-
-            if (h_deg < 0.0) {
-                h_deg += 360.0;
-            }
-        } else {
-            h_deg = 0.0;
-        }
-
-        hsv.h = static_cast<uint16_t>((h_deg / 360.0) * 255.0);
-
-        return hsv;
-    }
-
-mu_Color HSVTo_mu_Color(uint8_t pixel_x, uint8_t pixel_y) {
-
-    double s = pixel_x / 255.0;
-    double v = (255 - pixel_y) / 255.0;
-
-    double c = v * s;
-    double x = c * (1.0 - POS());
-    double m = v - c;
-
-    double r_ = 0, g_ = 0, b_ = 0;
-    if (currentHSV.h < 60)        { r_ = c; g_ = x; b_ = 0; }
-    else if (currentHSV.h < 120)  { r_ = x; g_ = c; b_ = 0; }
-    else if (currentHSV.h < 180)  { r_ = 0; g_ = c; b_ = x; }
-    else if (currentHSV.h < 240)  { r_ = 0; g_ = x; b_ = c; }
-    else if (currentHSV.h < 300)  { r_ = x; g_ = 0; b_ = c; }
-    else if (currentHSV.h <= 360) { r_ = c; g_ = 0; b_ = x; }
-
-    return mu_Color{
-        static_cast<uint8_t>((r_ + m) * 255.0),
-        static_cast<uint8_t>((g_ + m) * 255.0),
-        static_cast<uint8_t>((b_ + m) * 255.0),
-        255 // Alfa
-    };
-}
-
-
 }

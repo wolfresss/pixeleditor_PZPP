@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string.h>
 #include <fstream>
-#include "Renderer/View.h"
+#include "Renderer/CanvasRenderer.h"
 #include "Renderer/Renderer.h"
 
 using namespace std;

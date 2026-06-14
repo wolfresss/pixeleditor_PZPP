@@ -31,6 +31,11 @@ list(REMOVE_ITEM SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/Resources/TEMPORARY_
 add_executable(pixel_editor ${SRC_FILES}
         microui/src/microui.c
         microui/src/microui.h
+        src/Renderer/ColorUtils.cpp
+        src/Renderer/ColorUtils.h
+        src/Renderer/CanvasTools.cpp
+        src/Renderer/CanvasTools.h
+        src/Renderer/EditorGUI.h
 )
 
 target_link_libraries(pixel_editor PRIVATE

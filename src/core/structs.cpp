@@ -76,7 +76,7 @@ Layer& Document::activeLayer() {
 }
 
 std::vector<Color> Document::composite() {
-    std::vector<Color> result(width * height, {0, 0, 0, 255});
+    std::vector<Color> result(width * height, {0, 0, 0, 0});
 
     for (const auto& layer : layers) {
         if (!layer.visible) continue;
@@ -85,19 +85,22 @@ std::vector<Color> Document::composite() {
             const Color& src = layer.pixels[i];
             Color& dst = result[i];
 
-            // Prosty Alpha Blending (A over B)
-            if (src.a == 255) {
-                // Piksel w pełni nieprzezroczysty - nadpisujemy
-                dst = src;
-            } else if (src.a > 0) {
-                // Piksel półprzezroczysty - proste mieszanie
-                float alpha = src.a / 255.0f;
-                dst.r = (RGBA255)(src.r * alpha + dst.r * (1.0f - alpha));
-                dst.g = (RGBA255)(src.g * alpha + dst.g * (1.0f - alpha));
-                dst.b = (RGBA255)(src.b * alpha + dst.b * (1.0f - alpha));
-                dst.a = 255; // Dla uproszczenia wynik zawsze nieprzezroczysty na razie
+            if (src.a == 0) continue;
 
-                // TO DO: mieszanie warstw rozne tryby
+            if (src.a == 255 || dst.a == 0) {
+
+                dst = src;
+            } else {
+
+                float src_a = src.a / 255.0f;
+                float dst_a = dst.a / 255.0f;
+
+                float out_a = src_a + dst_a * (1.0f - src_a);
+
+                dst.r = (RGBA255)((src.r * src_a + dst.r * dst_a * (1.0f - src_a)) / out_a);
+                dst.g = (RGBA255)((src.g * src_a + dst.g * dst_a * (1.0f - src_a)) / out_a);
+                dst.b = (RGBA255)((src.b * src_a + dst.b * dst_a * (1.0f - src_a)) / out_a);
+                dst.a = (RGBA255)(out_a * 255.0f);
             }
         }
     }
