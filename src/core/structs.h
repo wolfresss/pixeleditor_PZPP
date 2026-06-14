@@ -4,6 +4,7 @@
 #include "Types.h"
 
 
+extern u32 pixelSize;
 struct Layer {
     u32 IdD;
     u32 Id;
@@ -15,8 +16,8 @@ struct Layer {
     std::vector<Color> pixels;
     Layer(int id, std::string name, u32 w, u32 h);
     Layer(int id, std::string name, u32 w, u32 h, std::vector<Color> p);
-    void setPixel(u32 x, u32 y, Color color);
-    void setPixels(u32 cx, u32 cy, u32 r, Color color);
+    void setPixel(int x, int y, Color color);
+    void setPixels(int cx, int cy, Color color);
     void setAllPixels(Color color);
 };
 
@@ -27,8 +28,9 @@ struct Document {
     std::vector<Layer> layers;
     int activeLayerIndex = 0;
     int PixelSize = 1;
-    Document(u32 w, u32 h, std::string n, Color color);
-    Document(u32 w, u32 h, std::string n, std::vector <Color> p);
+    static std::vector<Color> dynamic_palette;
+    Document(u32 w, u32 h, std::string n, Color color); //this one is for creating new document
+    Document(u32 w, u32 h, std::string n, std::vector <Color> p); //this one is for existing ones when load
     void addLayer(std::string name, Color color);
 
     void addLayer(std::string name, u32 w, u32 h, std::vector<Color> pixels);

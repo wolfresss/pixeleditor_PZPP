@@ -26,11 +26,16 @@ add_subdirectory(vendor/SDL_ttf)
 
 file(GLOB_RECURSE SRC_FILES src/*.cpp src/*.h src/*.c)
 
+list(REMOVE_ITEM SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/Resources/TEMPORARY_tool.cpp")
+
 add_executable(pixel_editor ${SRC_FILES}
         microui/src/microui.c
         microui/src/microui.h
-        src/Renderer/ColorPicker.cpp
-        src/Renderer/ColorPicker.h
+        src/Renderer/ColorUtils.cpp
+        src/Renderer/ColorUtils.h
+        src/Renderer/CanvasTools.cpp
+        src/Renderer/CanvasTools.h
+        src/Renderer/EditorGUI.h
 )
 
 target_link_libraries(pixel_editor PRIVATE
