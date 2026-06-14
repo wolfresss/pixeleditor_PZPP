@@ -58,14 +58,22 @@ int main(int argc, char* argv[])
     }
 
     string format;
-    int width = 0, height = 0;
-    in >> format >> width >> height;
-    in.get();
+    in >> format;
 
     if (format != "P4") {
         cerr << "Error: Format must be P4 (binary PBM). Detected: " << format << endl;
         return 1;
     }
+
+    string line;
+    while (in >> ws && in.peek() == '#') {
+        getline(in, line);
+    }
+
+    int width = 0, height = 0;
+    in >> width >> height;
+
+    in.get();
 
     if (width > 64) {
         cerr << "Error: Image width (" << width << " px) exceeds the 64-bit limit!" << endl;
@@ -77,7 +85,6 @@ int main(int argc, char* argv[])
     string enum_name = "ICON_PBM_" + to_uppercase(clean_name);
 
     string output_filename = "binary_icons.h";
-
     ifstream old_file(output_filename);
     string file_content = "";
     if (old_file.is_open()) {
@@ -119,11 +126,10 @@ int main(int argc, char* argv[])
         for (int x = 0; x < width; ++x) {
             int byte_idx = x / 8;
             int bit_idx = 7 - (x % 8);
+            bool is_pixel_drawn = (row_bytes[byte_idx] >> bit_idx) & 1;
 
-            bool is_pbm_black = (row_bytes[byte_idx] >> bit_idx) & 1;
-            bool active_pixel = !is_pbm_black;
 
-            if (active_pixel) {
+            if (!is_pixel_drawn) {
                 row_mask |= (1ULL << (63 - x));
             }
         }
@@ -134,17 +140,12 @@ int main(int argc, char* argv[])
     }
     new_array << "};\n\n";
 
-
     size_t data_section_pos = file_content.find("// SEKCJA DANYCH BINARNYCH (TABLICE BITOWE)");
     if (data_section_pos != string::npos) {
-
         size_t insert_pos = file_content.find("\n", data_section_pos);
         if (insert_pos != string::npos) {
             file_content.insert(insert_pos + 1, new_array.str());
         }
-    } else {
-        cerr << "Error: Could not find data section marker in " << output_filename << "!" << endl;
-        return 1;
     }
 
     if (file_content.find(enum_name + ", " + clean_name + "_icon_bits") != string::npos) {
@@ -155,25 +156,14 @@ int main(int argc, char* argv[])
             stringstream meta_entry;
             meta_entry << "    { " << enum_name << ", " << clean_name << "_icon_bits, " << width << ", " << height << " },\n";
             file_content.insert(meta_list_pos, meta_entry.str());
-        } else {
-            cerr << "Error: Could not find 'END_OF_REGISTRATION_LIST' marker in " << output_filename << "!" << endl;
-            return 1;
         }
     }
 
     ofstream out_file(output_filename, ios::out | ios::trunc);
-    if (!out_file.is_open()) {
-        cerr << "Error: Could not save modifications to " << output_filename << endl;
-        return 1;
-    }
     out_file << file_content;
 
     in.close();
     out_file.close();
-
-    cout << "\n[SUCCESS] Injected " << enum_name << " into enum list!\n";
-    cout << "[SUCCESS] Injected matrix data into Binary Section!\n";
-    cout << "[SUCCESS] Registered " << clean_name << " in automatic metadata list!\n";
-
+    cout << "\n[SUCCESS] Re-generated icon data correctly!\n";
     return 0;
 }

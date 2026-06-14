@@ -18,6 +18,8 @@ enum {
     ICON_PBM_PLUS,
     ICON_PBM_SMALL_PLUS,
     ICON_PBM_SQUARE,
+    ICON_PBM_EYE_CLOSED,
+    ICON_PBM_EYE_OPEN,
     ICON_PBM_TOTAL_COUNT
 };
 
@@ -81,6 +83,115 @@ inline SDL_Texture* LoadIconFrom64BitArray(SDL_Renderer* renderer, const uint64_
 // SEKCJA DANYCH BINARNYCH (TABLICE BITOWE)
 // Automatically generated from file: EYE_CLOSED.pbm
 // Dimensions: 50x50
+inline constexpr uint64_t EYE_CLOSED_icon_bits[50] = {
+    0x0000000000000000, // Row 0
+    0x0000000000000000, // Row 1
+    0x0000000000000000, // Row 2
+    0x0000000000000000, // Row 3
+    0x0000000000000000, // Row 4
+    0x0000000000000000, // Row 5
+    0x0000000000000000, // Row 6
+    0x0000000000000000, // Row 7
+    0x0000000000000000, // Row 8
+    0x0000000000000000, // Row 9
+    0x0000000000000000, // Row 10
+    0x0000000000000000, // Row 11
+    0x0000000000000000, // Row 12
+    0x0000000000000000, // Row 13
+    0x0000000000000000, // Row 14
+    0x0000000000000000, // Row 15
+    0x0000000000000000, // Row 16
+    0x0000000000000000, // Row 17
+    0x0000000000000000, // Row 18
+    0x0000000000000000, // Row 19
+    0x0000000000000000, // Row 20
+    0x0000000000000000, // Row 21
+    0x0000000000000000, // Row 22
+    0x0000000000000000, // Row 23
+    0x0000000000000000, // Row 24
+    0x0020000006000000, // Row 25
+    0x0030000004000000, // Row 26
+    0x001000000c000000, // Row 27
+    0x0010000008000000, // Row 28
+    0x0018000018000000, // Row 29
+    0x000c000010000000, // Row 30
+    0x0004000030000000, // Row 31
+    0x0006000060000000, // Row 32
+    0x00030000c0000000, // Row 33
+    0x0001c00380000000, // Row 34
+    0x0000f00f00000000, // Row 35
+    0x00003e3c00000000, // Row 36
+    0x00000ff000000000, // Row 37
+    0x000001c000000000, // Row 38
+    0x0000000000000000, // Row 39
+    0x0000000000000000, // Row 40
+    0x0000000000000000, // Row 41
+    0x0000000000000000, // Row 42
+    0x0000000000000000, // Row 43
+    0x0000000000000000, // Row 44
+    0x0000000000000000, // Row 45
+    0x0000000000000000, // Row 46
+    0x0000000000000000, // Row 47
+    0x0000000000000000, // Row 48
+    0x0000000000000000 // Row 49
+};
+
+// Automatically generated from file: EYE_OPEN.pbm
+// Dimensions: 50x50
+inline constexpr uint64_t EYE_OPEN_icon_bits[50] = {
+    0x0000000000000000, // Row 0
+    0x0000000000000000, // Row 1
+    0x0000000000000000, // Row 2
+    0x0000000000000000, // Row 3
+    0x0000000000000000, // Row 4
+    0x0000000000000000, // Row 5
+    0x0000000000000000, // Row 6
+    0x0000000000000000, // Row 7
+    0x0000000000000000, // Row 8
+    0x000007e000000000, // Row 9
+    0x00003ffc00000000, // Row 10
+    0x0000781e00000000, // Row 11
+    0x0001c00380000000, // Row 12
+    0x00038001c0000000, // Row 13
+    0x0006000060000000, // Row 14
+    0x0004000030000000, // Row 15
+    0x000c000010000000, // Row 16
+    0x001807e018000000, // Row 17
+    0x00101ff808000000, // Row 18
+    0x00103ffc0c000000, // Row 19
+    0x00107ffe04000000, // Row 20
+    0x0030780e04000000, // Row 21
+    0x00207bef06000000, // Row 22
+    0x00207bef02000000, // Row 23
+    0x00207bef02000000, // Row 24
+    0x00207bee06000000, // Row 25
+    0x0030780e04000000, // Row 26
+    0x00103ffc0c000000, // Row 27
+    0x00101ff808000000, // Row 28
+    0x00180ff018000000, // Row 29
+    0x000c01c010000000, // Row 30
+    0x0004000030000000, // Row 31
+    0x0006000060000000, // Row 32
+    0x00030000c0000000, // Row 33
+    0x0001c00380000000, // Row 34
+    0x0000f00f00000000, // Row 35
+    0x00003e3c00000000, // Row 36
+    0x00000ff000000000, // Row 37
+    0x000001c000000000, // Row 38
+    0x0000000000000000, // Row 39
+    0x0000000000000000, // Row 40
+    0x0000000000000000, // Row 41
+    0x0000000000000000, // Row 42
+    0x0000000000000000, // Row 43
+    0x0000000000000000, // Row 44
+    0x0000000000000000, // Row 45
+    0x0000000000000000, // Row 46
+    0x0000000000000000, // Row 47
+    0x0000000000000000, // Row 48
+    0x0000000000000000 // Row 49
+};
+
+
 
 // ==========================================
 
@@ -161,6 +272,8 @@ inline const PBM_SourceMeta generated_icons_meta[] = {
     { ICON_PBM_PLUS, plus_icon_bits, 50, 50 },
     { ICON_PBM_SMALL_PLUS, small_plus_icon_bits, 20, 20 },
     { ICON_PBM_SQUARE, square_icon_bits, 50, 50 },
+    { ICON_PBM_EYE_CLOSED, EYE_CLOSED_icon_bits, 50, 50 },
+    { ICON_PBM_EYE_OPEN, EYE_OPEN_icon_bits, 50, 50 },
 }; // END_OF_REGISTRATION_LIST
 
 inline void InitAppIcons(SDL_Renderer* renderer) {
