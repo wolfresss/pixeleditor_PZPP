@@ -13,7 +13,7 @@ namespace CanvasTools {
     void executePencil(Document& doc, int x, int y, Color drawColor);
     void executeRubber(Document& doc, int x, int y);
     void drawLineOnCanvas(Document& doc, int x0, int y0, int x1, int y1, ToolType selectedTool, Color currentColor);
-    void ProcessTool(ToolType selectedTool, Document& doc, float mouseX, float mouseY, bool isFirstClick, Color currentColor, int offsetX, int offsetY, float zoomScale);
+    void ProcessTool(int selectedTool, Document& doc, float mouseX, float mouseY, bool isClick, Color color, int offsetX, int offsetY, float zoomScale);
 }
 
 

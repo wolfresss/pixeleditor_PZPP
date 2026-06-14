@@ -84,7 +84,7 @@ namespace Render {
                     window.shouldQuit = true;
                     break;
                 case SDL_EVENT_MOUSE_MOTION:
-                    if (hold && window.CurrentFile) {
+                    if (hold && window.CurrentFile && window.mu_ctx->hover_root == nullptr) {
                         CanvasTools::ProcessTool(uiConfig.selectedTool, *window.CurrentFile, window.event.motion.x, window.event.motion.y, false, currentColor, offsetX, offsetY, zoomScale);
                     }
                     mu_input_mousemove(window.mu_ctx, (int)window.event.motion.x, (int)window.event.motion.y);
@@ -96,12 +96,13 @@ namespace Render {
                         lastMouseX = window.event.button.x;
                         lastMouseY = window.event.button.y;
 
-                        if (window.CurrentFile) {
+                        if (window.CurrentFile && window.mu_ctx->hover_root == nullptr) {
                             CanvasTools::ProcessTool(uiConfig.selectedTool, *window.CurrentFile, window.event.button.x, window.event.button.y, true, currentColor, offsetX, offsetY, zoomScale);
                         }
                     }
                     mu_input_mousedown(window.mu_ctx, (int)window.event.button.x, (int)window.event.button.y, MU_MOUSE_LEFT);
                     break;
+
                 case SDL_EVENT_MOUSE_BUTTON_UP:
                     hold = false;
                     mu_input_mouseup(window.mu_ctx, (int)window.event.button.x, (int)window.event.button.y, MU_MOUSE_LEFT);

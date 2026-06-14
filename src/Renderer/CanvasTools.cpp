@@ -43,19 +43,26 @@ namespace CanvasTools {
         }
     }
 
-    void ProcessTool(ToolType selectedTool, Document& doc, float mouseX, float mouseY, bool isFirstClick, Color currentColor, int offsetX, int offsetY, float zoomScale) {
-        int currentPixelX = static_cast<int>((mouseX - offsetX) / zoomScale);
-        int currentPixelY = static_cast<int>((mouseY - offsetY) / zoomScale);
-        int prevPixelX = static_cast<int>((lastMouseX - offsetX) / zoomScale);
-        int prevPixelY = static_cast<int>((lastMouseY - offsetY) / zoomScale);
+    void ProcessTool(int selectedTool, Document& doc, float mouseX, float mouseY, bool isClick, Color color, int offsetX, int offsetY, float zoomScale) {
+        int canvas_x = static_cast<int>((mouseX - offsetX) / zoomScale);
+        int canvas_y = static_cast<int>((mouseY - offsetY) / zoomScale);
 
-        if (isFirstClick) {
-            if (selectedTool == PENCIL) executePencil(doc, currentPixelX, currentPixelY, currentColor);
-            else if (selectedTool == RUBBER) executeRubber(doc, currentPixelX, currentPixelY);
-        } else {
-            drawLineOnCanvas(doc, prevPixelX, prevPixelY, currentPixelX, currentPixelY, selectedTool, currentColor);
-        }
-        lastMouseX = mouseX;
-        lastMouseY = mouseY;
+
+        if (canvas_x >= 0 && canvas_x < static_cast<int>(doc.width) &&
+            canvas_y >= 0 && canvas_y < static_cast<int>(doc.height)) {
+
+
+            Layer& currentLayer = doc.activeLayer();
+
+
+            if (selectedTool == PENCIL) {
+
+                currentLayer.setPixels(canvas_x, canvas_y, color);
+            }
+            else if (selectedTool == RUBBER) {
+
+                currentLayer.setPixels(canvas_x, canvas_y, Color{0, 0, 0, 0});
+            }
+            }
     }
 }
