@@ -16,17 +16,24 @@ width(w), height(h),
 pixels(p)
 {
 }
-void Layer::setPixel(u32 x, u32 y, Color color) {
-    if (x >= 0 && x < width && y >= 0 && y < height) {
+
+//NOTE(Iza) : A bug with brush not touching edges was tied to unsigned int, the pixel could not be
+// set because it only could execute positive numbers
+
+void Layer::setPixel(int x, int y, Color color) {
+    if (x >= 0 && x < static_cast<int>(width) && y >= 0 && y < static_cast<int>(height)) {
         pixels[y * width + x] = color;
     }
 }
 
-void Layer::setPixels(u32 cx, u32 cy, Color color) {
-    for(int x = cx - pixelSize; x <= cx + pixelSize; ++x) {
-        for(int y = cy - pixelSize; y <= cy + pixelSize; ++y) {
-            int dx = x - cx, dy = y - cy;
-            if(dx*dx + dy*dy <= pixelSize*pixelSize) {
+void Layer::setPixels(int cx, int cy, Color color) {
+    int r = static_cast<int>(pixelSize);
+
+    for(int x = cx - r; x <= cx + r; ++x) {
+        for(int y = cy - r; y <= cy + r; ++y) {
+            int dx = x - cx;
+            int dy = y - cy;
+            if(dx * dx + dy * dy <= r * r) {
                 setPixel(x, y, color);
             }
         }
