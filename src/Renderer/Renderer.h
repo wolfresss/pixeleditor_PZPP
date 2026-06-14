@@ -29,6 +29,7 @@ struct UIConfig {
     bool showGrid = true;                // TO DO: implementacja prostego grida
     bool snapToPixel = false;            // TO DO: funkcjonalność algorytmy dokumentacja
     ToolType selectedTool = PENCIL;
+    bool useInterpolation = false;
 
     int leftPanelWidth;
     int rightPanelWidth;

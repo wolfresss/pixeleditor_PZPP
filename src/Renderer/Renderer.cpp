@@ -23,6 +23,10 @@ namespace Render {
     int offsetY = 100;
     float zoomScale = 8.0f;
 
+    bool hold = false;
+    float lastMouseX = 0.0f;
+    float lastMouseY = 0.0f;
+
     SDL_Texture* CreatePaletteTexture() {
         SDL_Texture* texture = SDL_CreateTexture(window.renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, 256, 256);
         if (!texture) {
@@ -38,6 +42,8 @@ namespace Render {
         ColorUtils::UpdatePalette(currentHSV, Palette);
 
         SDL_UpdateTexture(window.paletteTexture, nullptr, Palette, 256 * sizeof(uint32_t));
+
+        currentColor = ColorUtils::HSVToRGB(currentHSV, currentHSV.s, 255 - currentHSV.v);
     }
 
     int text_width(mu_Font font, const char *text, int len) {
@@ -83,9 +89,37 @@ namespace Render {
                 case SDL_EVENT_QUIT:
                     window.shouldQuit = true;
                     break;
-                case SDL_EVENT_MOUSE_MOTION:
+          case SDL_EVENT_MOUSE_MOTION:
                     if (hold && window.CurrentFile && window.mu_ctx->hover_root == nullptr) {
-                        CanvasTools::ProcessTool(uiConfig.selectedTool, *window.CurrentFile, window.event.motion.x, window.event.motion.y, false, currentColor, offsetX, offsetY, zoomScale);
+
+                        float brushSize = static_cast<float>(uiConfig.PixelSize);
+                        float halfBrush = brushSize / 2.0f;
+
+                        if (uiConfig.useInterpolation) {
+
+                            float x1 = lastMouseX;
+                            float y1 = lastMouseY;
+                            float x2 = window.event.motion.x;
+                            float y2 = window.event.motion.y;
+
+                            float dx = x2 - x1;
+                            float dy = y2 - y1;
+                            float steps = std::max(std::abs(dx), std::abs(dy));
+
+                            for (int i = 0; i <= steps; i++) {
+                                float t = (steps == 0) ? 0.0f : (float)i / steps;
+                                float currX = x1 + dx * t;
+                                float currY = y1 + dy * t;
+
+
+                                CanvasTools::ProcessTool(uiConfig.selectedTool, *window.CurrentFile, currX - halfBrush, currY - halfBrush, false, currentColor, offsetX, offsetY, zoomScale);
+                            }
+                        } else {
+                            CanvasTools::ProcessTool(uiConfig.selectedTool, *window.CurrentFile, window.event.motion.x - halfBrush, window.event.motion.y - halfBrush, false, currentColor, offsetX, offsetY, zoomScale);
+                        }
+
+                        lastMouseX = window.event.motion.x;
+                        lastMouseY = window.event.motion.y;
                     }
                     mu_input_mousemove(window.mu_ctx, (int)window.event.motion.x, (int)window.event.motion.y);
                     break;
@@ -97,7 +131,9 @@ namespace Render {
                         lastMouseY = window.event.button.y;
 
                         if (window.CurrentFile && window.mu_ctx->hover_root == nullptr) {
-                            CanvasTools::ProcessTool(uiConfig.selectedTool, *window.CurrentFile, window.event.button.x, window.event.button.y, true, currentColor, offsetX, offsetY, zoomScale);
+
+                            float halfBrush = static_cast<float>(uiConfig.PixelSize) / 2.0f;
+                            CanvasTools::ProcessTool(uiConfig.selectedTool, *window.CurrentFile, window.event.button.x - halfBrush, window.event.button.y - halfBrush, true, currentColor, offsetX, offsetY, zoomScale);
                         }
                     }
                     mu_input_mousedown(window.mu_ctx, (int)window.event.button.x, (int)window.event.button.y, MU_MOUSE_LEFT);
@@ -127,12 +163,17 @@ namespace Render {
                     }
                     break;
                 case SDL_EVENT_MOUSE_WHEEL:
-                    // Zmiana skali zbliżenia (zoomScale) zamiast wartości w konfiguracji UI
-                    if (window.event.wheel.y > 0.0f)       zoomScale *= 1.2f;
-                    else if (window.event.wheel.y < 0.0f)  zoomScale /= 1.2f;
+                    float wheel_delta = window.event.wheel.y;
+                    if (wheel_delta > 0.0f) {
+                        uiConfig.scale *= 1.1f;
+                    } else if (wheel_delta < 0.0f) {
+                        uiConfig.scale /= 1.1f;
+                    }
 
-                    if (zoomScale < 0.5f)  zoomScale = 0.5f;
-                    if (zoomScale > 32.0f) zoomScale = 32.0f;
+                    if (uiConfig.scale < 1.0f)  uiConfig.scale = 1.0f;
+                    if (uiConfig.scale > 40.0f) uiConfig.scale = 40.0f;
+
+                    zoomScale = uiConfig.scale;
                     break;
             }
         }
@@ -209,6 +250,18 @@ namespace Render {
                     if (local_cmd->icon.id == MU_ICON_MAX) {
                         SDL_FRect dstRect = { (float)local_cmd->icon.rect.x, (float)local_cmd->icon.rect.y, (float)local_cmd->icon.rect.w, (float)local_cmd->icon.rect.h };
                         SDL_RenderTexture(window.renderer, window.paletteTexture, nullptr, &dstRect);
+
+                        float dotX = dstRect.x + (static_cast<float>(currentHSV.s) / 255.0f) * dstRect.w;
+                        float dotY = dstRect.y + (1.0f - (static_cast<float>(currentHSV.v) / 255.0f)) * dstRect.h;
+
+
+                        SDL_FRect outerDot = { dotX - 4.0f, dotY - 4.0f, 8.0f, 8.0f };
+                        SDL_SetRenderDrawColor(window.renderer, 0, 0, 0, 255); // czarny
+                        SDL_RenderFillRect(window.renderer, &outerDot);
+
+                        SDL_FRect innerDot = { dotX - 2.0f, dotY - 2.0f, 4.0f, 4.0f };
+                        SDL_SetRenderDrawColor(window.renderer, 255, 255, 255, 255); // biały
+                        SDL_RenderFillRect(window.renderer, &innerDot);
                     }
                     else if (local_cmd->icon.id > MU_ICON_MAX) {
                         SDL_Texture* custom_icon = GetTextureByIconID(local_cmd->icon.id);
